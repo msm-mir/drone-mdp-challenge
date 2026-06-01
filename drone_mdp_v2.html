@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone MDP — AI Foundations v6 (Local)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;700;800&display=swap');
+        :root {
+          --bg:#080c10;--bg2:#0d1219;--bg3:#131a23;--bg4:#19222e;
+          --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+          --text:#dde6f0;--text2:#6b7d8f;--text3:#3a4a58;
+          --green:#00e676;--red:#ff3d57;--amber:#ffab00;--blue:#00b4ff;--teal:#00e5cc;
+          --medkit:#00ffaa;--portal:#cc44ff;--zone:#ff6b1a;
+          --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
+        }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--mono);overflow:hidden;}
+        body::before{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
+          background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);}
+        .app{display:flex;height:100vh;}
+
+        /* LEFT */
+        .left{width:440px;min-width:440px;display:flex;flex-direction:column;border-right:1px solid var(--border2);background:var(--bg2);height:100vh;overflow:hidden;}
+        .logo{padding:10px 16px 8px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+        .logo-title{font-family:var(--sans);font-size:13px;font-weight:800;color:var(--blue);letter-spacing:2px;text-transform:uppercase;}
+        .logo-sub{font-size:9px;color:var(--text2);margin-top:2px;letter-spacing:1px;}
+        .srv-status{font-size:9px;padding:3px 8px;border-radius:3px;border:1px solid;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;}
+        .srv-status.checking{background:rgba(255,171,0,.1);border-color:rgba(255,171,0,.4);color:var(--amber);}
+        .srv-status.connected{background:rgba(0,230,118,.1);border-color:rgba(0,230,118,.4);color:var(--green);}
+        .srv-status.disconnected{background:rgba(255,61,87,.1);border-color:rgba(255,61,87,.4);color:var(--red);}
+
+        .conn-help{padding:8px 12px;background:rgba(255,61,87,.06);border-bottom:1px solid rgba(255,61,87,.2);display:none;flex-shrink:0;}
+        .conn-help.show{display:block;}
+        .conn-help-title{font-size:9px;color:var(--red);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+        .conn-step{font-size:9px;color:var(--text2);line-height:1.8;display:flex;align-items:flex-start;gap:5px;}
+        .conn-step .num{color:var(--amber);font-weight:700;flex-shrink:0;}
+        .conn-step code{background:var(--bg3);border:1px solid var(--border2);border-radius:3px;padding:1px 4px;color:var(--teal);font-size:8.5px;}
+        .conn-retry{margin-top:5px;width:100%;padding:5px;background:var(--bg3);border:1px solid var(--border2);
+          border-radius:3px;color:var(--amber);font-family:var(--mono);font-size:9px;cursor:pointer;letter-spacing:.5px;}
+        .conn-retry:hover{border-color:var(--amber);}
+
+        .api-section{padding:6px 12px;border-bottom:1px solid var(--border);background:var(--bg);overflow-y:auto;flex:1;min-height:0;}
+        .section-label{font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);
+          margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+        .section-label::before{content:'';width:14px;height:1px;background:var(--teal);opacity:.6;}
+        .api-grid{display:flex;flex-direction:column;gap:2px;}
+        .api-item{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:9.5px;line-height:1.5;}
+        .api-name{color:var(--amber);} .api-ret{color:var(--green);}
+        .api-desc{color:var(--text2);font-size:8.5px;margin-top:1px;}
+        .api-detail{color:var(--text3);font-size:8px;margin-top:1px;line-height:1.5;}
+        .hi{color:var(--portal);} .zo{color:var(--zone);}
+
+        .env-params{padding:5px 12px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+        .env-row{display:flex;gap:3px;flex-wrap:wrap;}
+        .env-chip{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:2px 6px;font-size:8.5px;display:flex;align-items:center;gap:3px;}
+        .env-chip .ev{color:var(--text2);} .env-chip .vv{color:var(--amber);font-weight:700;} .env-chip .vv.zone{color:var(--zone);}
+
+        .gamma-row{padding:5px 12px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+        .gamma-label{font-size:9px;color:var(--text2);flex-shrink:0;}
+        input[type=range]{flex:1;accent-color:var(--amber);height:3px;}
+        .gamma-val{font-size:10px;color:var(--amber);font-weight:700;min-width:30px;text-align:right;}
+
+        .score-rules{padding:5px 12px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+        .score-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;}
+        .sr{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:2px 5px;font-size:8.5px;display:flex;justify-content:space-between;align-items:center;gap:3px;}
+        .sr .ev{color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .sr .rv{font-weight:700;flex-shrink:0;}
+        .rv.pos{color:var(--green);} .rv.neg{color:var(--red);} .rv.dmg{color:var(--amber);}
+        .rv.med{color:var(--medkit);} .rv.por{color:var(--portal);} .rv.zon{color:var(--zone);} .rv.wal{color:#aaa;}
+        .rv.crash{color:#ff0040;text-shadow:0 0 5px rgba(255,0,64,.5);}
+
+        .py-path-bar{padding:5px 12px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:6px;flex-shrink:0;}
+        .py-path-label{font-size:8.5px;color:var(--text2);flex-shrink:0;}
+        .py-path-val{font-size:8.5px;color:var(--teal);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+        .bottom-bar{padding:7px 10px;border-top:1px solid var(--border2);background:var(--bg);display:flex;gap:5px;align-items:center;flex-shrink:0;}
+        .btn-run{flex:1;padding:9px 0;background:var(--blue);color:#000;border:none;border-radius:6px;
+          font-family:var(--mono);font-size:11.5px;font-weight:700;cursor:pointer;
+          letter-spacing:1px;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;}
+        .btn-run:hover{background:#33c5ff;transform:translateY(-1px);box-shadow:0 4px 18px rgba(0,180,255,.3);}
+        .btn-run:active{transform:translateY(0);}
+        .btn-run:disabled{background:var(--bg4);color:var(--text2);cursor:not-allowed;transform:none;box-shadow:none;}
+        .btn-sec{padding:9px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;
+          color:var(--text2);font-family:var(--mono);font-size:10.5px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+        .btn-sec:hover{border-color:var(--teal);color:var(--teal);}
+        .btn-sec:disabled{opacity:.4;cursor:not-allowed;}
+        .err-box{margin:0 10px 5px;padding:5px 9px;background:rgba(255,61,87,.08);
+          border:1px solid rgba(255,61,87,.3);border-radius:4px;font-size:9px;color:var(--red);
+          line-height:1.5;display:none;max-height:80px;overflow-y:auto;white-space:pre-wrap;flex-shrink:0;}
+
+        /* RIGHT */
+        .right{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg);}
+        .top-bar{padding:7px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;
+          background:var(--bg2);flex-shrink:0;flex-wrap:wrap;}
+        .stat-chip{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);
+          border-radius:4px;padding:4px 8px;font-size:10px;}
+        .stat-chip .label{color:var(--text2);} .stat-chip .val{color:var(--text);font-weight:500;min-width:22px;text-align:right;}
+        .stat-chip .val.green{color:var(--green);} .stat-chip .val.red{color:var(--red);}
+        .stat-chip .val.amber{color:var(--amber);} .stat-chip .val.blue{color:var(--blue);}
+        .dmg-pips{display:flex;gap:2px;align-items:center;}
+        .pip{width:9px;height:9px;border-radius:2px;border:1px solid var(--border2);transition:all .3s;}
+        .pip.d0{background:var(--green);border-color:var(--green);}
+        .pip.d1{background:#aaff00;border-color:#aaff00;}
+        .pip.d2{background:var(--amber);border-color:var(--amber);}
+        .pip.d3{background:#ff6600;border-color:#ff6600;}
+        .pip.d4{background:var(--red);border-color:var(--red);box-shadow:0 0 5px rgba(255,61,87,.7);}
+        .pip.empty{background:var(--bg4);}
+        .status-pill{margin-left:auto;padding:4px 10px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+        .status-pill.idle{background:rgba(107,125,143,.15);color:var(--text2);border:1px solid rgba(107,125,143,.3);}
+        .status-pill.computing{background:rgba(255,171,0,.1);color:var(--amber);border:1px solid rgba(255,171,0,.3);}
+        .status-pill.running{background:rgba(0,229,204,.1);color:var(--teal);border:1px solid rgba(0,229,204,.3);}
+        .status-pill.done{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.3);}
+        .status-pill.crashed{background:rgba(255,0,64,.15);color:#ff0040;border:1px solid rgba(255,0,64,.4);animation:crashpulse 1s ease infinite;}
+        .status-pill.error{background:rgba(255,61,87,.1);color:var(--red);border:1px solid rgba(255,61,87,.3);}
+        .status-pill.offline{background:rgba(255,61,87,.1);color:var(--red);border:1px solid rgba(255,61,87,.3);animation:crashpulse 1.5s ease infinite;}
+        @keyframes crashpulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+        .grid-area{flex:1;display:flex;align-items:center;justify-content:center;padding:8px;min-height:0;position:relative;overflow:auto;}
+        table#grid{border-collapse:collapse;border:1px solid var(--border2);box-shadow:0 0 60px rgba(0,0,0,.5);}
+        td.cell{position:relative;border:1px solid var(--border);text-align:center;vertical-align:middle;
+          cursor:default;transition:background .25s;overflow:hidden;}
+        td.cell.normal{background:#0a1018;}
+        td.cell.obstacle{background:#060a0d;}
+        td.cell.goal{background:#041a0a;}
+        td.cell.medkit{background:#031811;}
+        td.cell.portal_a{background:#120a1e;}
+        td.cell.portal_b{background:#0a1220;}
+        td.cell.storm1{background:#160908;}
+        td.cell.storm2{background:#1e0808;}
+        td.cell.storm3{background:#280505;}
+        td.cell.in-zone.normal{background:#0e0c09;}
+        td.cell.in-zone{border-color:rgba(255,107,26,0.18)!important;}
+        td.cell.goal::after,td.cell.storm1::after,td.cell.storm2::after,td.cell.storm3::after,
+        td.cell.medkit::after,td.cell.portal_a::after,td.cell.portal_b::after{
+          content:'';position:absolute;inset:0;pointer-events:none;}
+        td.cell.goal::after{background:radial-gradient(circle at center,rgba(0,230,118,.15),transparent 70%);}
+        td.cell.storm1::after{background:radial-gradient(circle at center,rgba(255,80,0,.12),transparent 70%);}
+        td.cell.storm2::after{background:radial-gradient(circle at center,rgba(255,80,0,.16),transparent 70%);}
+        td.cell.storm3::after{background:radial-gradient(circle at center,rgba(255,20,0,.2),transparent 70%);}
+        td.cell.medkit::after{background:radial-gradient(circle at center,rgba(0,255,170,.08),transparent 70%);}
+        td.cell.portal_a::after,td.cell.portal_b::after{background:radial-gradient(circle at center,rgba(204,68,255,.14),transparent 70%);}
+        td.cell.drone-here{box-shadow:inset 0 0 0 2px rgba(0,180,255,.8),0 0 16px rgba(0,180,255,.2);background:#071520!important;z-index:2;}
+        td.cell.trail::before{content:'';position:absolute;inset:0;
+          background:radial-gradient(circle at center,rgba(0,180,255,.06),transparent 60%);pointer-events:none;}
+        td.cell.medkit-collected{opacity:.4!important;}
+        .crash-overlay{position:absolute;inset:0;background:rgba(255,0,40,.2);
+          display:flex;align-items:center;justify-content:center;font-size:22px;z-index:20;
+          pointer-events:none;border:2px solid rgba(255,0,40,.6);}
+        .cell-icon{font-size:15px;line-height:1;display:block;}
+        .cell-coords{position:absolute;top:2px;left:2px;font-size:6px;color:var(--text3);}
+        .cell-action{position:absolute;bottom:1px;right:2px;font-size:9px;opacity:.55;}
+        .cell-portal-id{position:absolute;top:1px;right:2px;font-size:6px;color:var(--portal);opacity:.8;}
+        .cell-sev{position:absolute;bottom:1px;left:2px;font-size:6.5px;font-weight:700;}
+        .cell-sev.s1{color:#ff6040;} .cell-sev.s2{color:#ff3010;} .cell-sev.s3{color:#ff0000;text-shadow:0 0 4px rgba(255,0,0,.5);}
+        .zone-marker{position:absolute;top:1px;right:2px;font-size:6px;color:var(--zone);opacity:.6;}
+        .drone-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+          z-index:10;pointer-events:none;animation:drone-hover 2.2s ease-in-out infinite;}
+        @keyframes drone-hover{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+        .drone-ring{position:absolute;width:30px;height:30px;border-radius:50%;
+          border:1.5px solid rgba(0,180,255,.5);animation:ring-pulse 1.8s ease-out infinite;pointer-events:none;z-index:9;}
+        @keyframes ring-pulse{0%{opacity:.7;transform:scale(.7)}100%{opacity:0;transform:scale(1.6)}}
+        .drone-health{position:absolute;bottom:1px;left:50%;transform:translateX(-50%);font-size:7px;z-index:11;pointer-events:none;}
+        @keyframes storm-flash{0%{opacity:1}50%{opacity:.2}100%{opacity:1}}
+        td.cell.storm-hit{animation:storm-flash .35s ease;}
+        @keyframes crash-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+        td.cell.crash-anim{animation:crash-shake .4s ease;}
+        @keyframes medkit-flash{0%{box-shadow:inset 0 0 0 2px rgba(0,255,170,.9)}100%{box-shadow:none}}
+        td.cell.medkit-pickup{animation:medkit-flash .5s ease;}
+        @keyframes portal-flash{0%{box-shadow:inset 0 0 0 3px rgba(204,68,255,.9)}100%{box-shadow:none}}
+        td.cell.portal-used{animation:portal-flash .6s ease;}
+
+        /* SCORE PANEL */
+        .score-panel{border-top:1px solid var(--border);background:var(--bg2);padding:6px 12px;
+          display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap;}
+        .episode-dots{display:flex;gap:3px;align-items:center;}
+        .ep-dot{width:19px;height:19px;border-radius:50%;border:1.5px solid var(--border2);
+          display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--text3);transition:all .3s;cursor:default;}
+        .ep-dot.active{border-color:var(--blue);color:var(--blue);box-shadow:0 0 8px rgba(0,180,255,.3);}
+        .ep-dot.done-ok{background:rgba(0,230,118,.15);border-color:var(--green);color:var(--green);}
+        .ep-dot.done-timeout{background:rgba(255,171,0,.1);border-color:var(--amber);color:var(--amber);}
+        .ep-dot.done-crash{background:rgba(255,0,40,.15);border-color:#ff0040;color:#ff0040;}
+        .mini-stats{display:flex;gap:7px;margin-left:8px;align-items:center;flex-wrap:wrap;}
+        .mini-stat{text-align:center;}
+        .mini-stat .n{font-family:var(--sans);font-size:14px;font-weight:800;color:var(--text3);transition:color .4s;}
+        .mini-stat .n.lit-green{color:var(--green);} .mini-stat .n.lit-red{color:var(--red);}
+        .mini-stat .n.lit-crash{color:#ff0040;} .mini-stat .n.lit-med{color:var(--medkit);}
+        .mini-stat .n.lit-por{color:var(--portal);}
+        .mini-stat .lbl{font-size:7px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;}
+        .final-score{margin-left:auto;text-align:right;}
+        .final-score .score-num{font-family:var(--sans);font-size:20px;font-weight:800;color:var(--text3);transition:color .5s;}
+        .final-score .score-num.lit{color:var(--green);text-shadow:0 0 18px rgba(0,230,118,.4);}
+        .final-score .score-label{font-size:8px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;}
+        .ep-table{display:flex;gap:4px;margin-left:10px;align-items:stretch;}
+        .ep-cell{background:var(--bg3);border:1px solid var(--border);border-radius:4px;
+          padding:3px 6px;text-align:center;min-width:44px;}
+        .ep-cell .ep-n{font-size:8px;color:var(--text2);}
+        .ep-cell .ep-sc{font-family:var(--sans);font-size:12px;font-weight:800;color:var(--text3);transition:color .4s;}
+        .ep-cell .ep-mx{font-size:7px;color:var(--text3);}
+        .ep-cell.ok .ep-sc{color:var(--green);}
+        .ep-cell.crash .ep-sc{color:#ff0040;}
+        .ep-cell.timeout .ep-sc{color:var(--amber);}
+        .ep-cell.active{border-color:var(--blue);}
+
+        .log-bar{border-top:1px solid var(--border);height:36px;overflow:hidden;background:var(--bg);
+          padding:0 12px;display:flex;align-items:center;}
+        .log-inner{font-size:10px;color:var(--text2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+        .log-inner .ts{color:var(--text3);margin-right:5px;}
+        .log-inner.info .msg{color:var(--blue);} .log-inner.ok .msg{color:var(--green);}
+        .log-inner.err .msg{color:var(--red);} .log-inner.warn .msg{color:var(--amber);}
+        .log-inner.med .msg{color:var(--medkit);} .log-inner.por .msg{color:var(--portal);}
+        .log-inner.crash .msg{color:#ff0040;}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .spin{display:inline-block;animation:spin .7s linear infinite;}
+        ::-webkit-scrollbar{width:4px;}
+        ::-webkit-scrollbar-track{background:transparent;}
+        ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <!-- LEFT PANEL -->
+    <div class="left">
+        <div class="logo">
+            <div>
+                <div class="logo-title">🚁 MDP Drone Challenge</div>
+                <div class="logo-sub">AI Foundations · Value Iteration · Local Python Backend</div>
+            </div>
+            <div id="srv-status" class="srv-status checking" onclick="checkServer()" title="Click to retry">⏳
+                Connecting...
+            </div>
+        </div>
+
+        <div id="conn-help" class="conn-help">
+            <div class="conn-help-title">⚠ server.py is not running</div>
+            <div class="conn-step"><span class="num">1.</span><span>Open a terminal in the project folder</span></div>
+            <div class="conn-step"><span
+                    class="num">2.</span><span>Install deps: <code>pip install flask flask-cors</code></span></div>
+            <div class="conn-step"><span class="num">3.</span><span>Run: <code>python server.py</code></span></div>
+            <div class="conn-step"><span class="num">4.</span><span>Edit <code>policy.py</code> then click ▶ Run</span>
+            </div>
+            <button class="conn-retry" onclick="checkServer()">⟳ Retry Connection</button>
+        </div>
+
+        <div class="api-section">
+            <div class="section-label">Student API — policy.py — state = (row, col, damage)</div>
+            <div class="api-grid">
+                <div class="api-item">
+                    <div><span class="api-name">api.get_all_states()</span> → <span class="api-ret">list[tuple]</span>
+                    </div>
+                    <div class="api-desc">All non-obstacle (row,col,damage) tuples. damage ∈ {0,1,2,3,4}</div>
+                </div>
+                <div class="api-item">
+                    <div><span class="api-name">api.get_possible_actions(state)</span> → <span
+                            class="api-ret">list[str]</span></div>
+                    <div class="api-desc">['N','S','E','W'] or [] at goal (terminal)</div>
+                </div>
+                <div class="api-item">
+                    <div><span class="api-name">api.get_transitions(state, action)</span> → <span class="api-ret">list[tuple]</span>
+                    </div>
+                    <div class="api-desc">[(next_state, probability), ...] — merged if same next state</div>
+                </div>
+                <div class="api-item">
+                    <div><span class="api-name">api.get_reward(state, action, next_state)</span> → <span
+                            class="api-ret">float</span></div>
+                    <div class="api-desc">Step cost + storm + zone(eExpected) + medkit + wall/portal</div>
+                </div>
+                <div class="api-item">
+                    <div><span class="api-name">api.is_terminal(state)</span> → <span class="api-ret">bool</span></div>
+                    <div class="api-desc">True only for goal cell — V(goal) = 0 in VI</div>
+                </div>
+                <div class="api-item">
+                    <div><span class="api-name">api.get_env_params()</span> → <span class="api-ret">dict</span></div>
+                    <div class="api-desc">{'fwd', 'left', 'right', 'gamma', 'rows', 'cols', 'portals'}</div>
+                    <div class="api-detail"><span class="hi">Read fwd/left/right for your Bellman sum!</span></div>
+                </div>
+                <div class="api-item">
+                    <div><span class="api-name">api.get_storm_zone()</span> → <span class="api-ret">dict | None</span>
+                    </div>
+                    <div class="api-desc">{r1,c1,r2,c2,eMin,eMax,eExpected} or None</div>
+                    <div class="api-detail"><span class="zo">Use eExpected=(eMin+eMax)/2 already computed</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="env-params">
+            <div class="section-label">Live Environment Parameters</div>
+            <div class="env-row">
+                <div class="env-chip"><span class="ev">→ Fwd</span><span class="vv" id="env-fwd">—</span></div>
+                <div class="env-chip"><span class="ev">↰ Left</span><span class="vv" id="env-left">—</span></div>
+                <div class="env-chip"><span class="ev">↱ Right</span><span class="vv" id="env-right">—</span></div>
+                <div class="env-chip"><span class="ev">🌀 Portals</span><span class="vv" id="env-portals">—</span></div>
+                <div class="env-chip"><span class="ev">🌪 Zone</span><span class="vv zone" id="env-zone">—</span></div>
+                <div class="env-chip"><span class="ev">⚡ Zone±</span><span class="vv zone" id="env-zone-pen">—</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="gamma-row">
+            <span class="gamma-label">γ hint (read via api.get_env_params()):</span>
+            <input type="range" id="gamma-slider" min="0.80" max="0.99" step="0.01" value="0.95"
+                   oninput="UI_GAMMA=parseFloat(this.value);document.getElementById('gamma-display').textContent=parseFloat(this.value).toFixed(2);">
+            <span class="gamma-val" id="gamma-display">0.95</span>
+        </div>
+
+        <div class="score-rules">
+            <div class="section-label">Scoring Reference</div>
+            <div class="score-grid">
+                <div class="sr"><span class="ev">🎯 Goal</span><span class="rv pos">+300</span></div>
+                <div class="sr"><span class="ev">🩹 Medkit</span><span class="rv med">+25 −1dmg</span></div>
+                <div class="sr"><span class="ev">⛈ S1</span><span class="rv dmg">−50 dmg+1</span></div>
+                <div class="sr"><span class="ev">⛈ S2</span><span class="rv dmg">−100 dmg+1</span></div>
+                <div class="sr"><span class="ev">⛈ S3</span><span class="rv dmg">−125 dmg+2</span></div>
+                <div class="sr"><span class="ev">🌀 Portal</span><span class="rv por">−5 teleport</span></div>
+                <div class="sr"><span class="ev">🚧 Wall</span><span class="rv wal">−3 extra</span></div>
+                <div class="sr"><span class="ev">🌪 Zone</span><span class="rv zon">−rand</span></div>
+                <div class="sr"><span class="ev">dmg=0</span><span class="rv neg">−1/step</span></div>
+                <div class="sr"><span class="ev">dmg=4</span><span class="rv neg">−15/step</span></div>
+                <div class="sr"><span class="ev">⛔ Score≤−400</span><span class="rv neg">LOSE</span></div>
+                <div class="sr"><span class="ev">💥 dmg→5</span><span class="rv crash">CRASH −200</span></div>
+            </div>
+        </div>
+
+        <div class="py-path-bar">
+            <span class="py-path-label">📄 policy.py:</span>
+            <span class="py-path-val">Edit policy.py next to server.py, then click ▶ Run</span>
+        </div>
+
+        <div id="err-box" class="err-box"></div>
+        <div class="bottom-bar">
+            <button id="btn-run" class="btn-run" onclick="runPolicy()" disabled>⏳ Connecting...</button>
+            <button id="btn-map" class="btn-sec" onclick="newMap()">⟳ New Map</button>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right">
+        <div class="top-bar">
+            <div class="stat-chip"><span class="label">Episode</span><span id="ep-num" class="val blue">—</span></div>
+            <div class="stat-chip"><span class="label">Step</span><span id="ep-step" class="val">—</span></div>
+            <div class="stat-chip"><span class="label">Reward</span><span id="ep-reward" class="val">—</span></div>
+            <div class="stat-chip">
+                <span class="label">Damage</span>
+                <div class="dmg-pips">
+                    <div id="pip0" class="pip empty"></div>
+                    <div id="pip1" class="pip empty"></div>
+                    <div id="pip2" class="pip empty"></div>
+                    <div id="pip3" class="pip empty"></div>
+                    <div id="pip4" class="pip empty"></div>
+                </div>
+            </div>
+            <div class="stat-chip"><span class="label">Grid</span><span id="grid-info" class="val blue">—</span></div>
+            <div id="status-pill" class="status-pill idle">IDLE</div>
+        </div>
+
+        <div class="grid-area">
+            <table id="grid"></table>
+        </div>
+
+        <div class="score-panel">
+            <div style="display:flex;flex-direction:column;gap:3px">
+                <div style="font-size:8px;color:var(--text2);text-transform:uppercase;letter-spacing:1px">Episodes</div>
+                <div class="episode-dots" id="ep-dots"></div>
+            </div>
+            <div class="ep-table" id="ep-table"></div>
+            <div class="mini-stats">
+                <div class="mini-stat">
+                    <div id="goals-hit" class="n">0</div>
+                    <div class="lbl">Goals</div>
+                </div>
+                <div class="mini-stat">
+                    <div id="crashes-n" class="n">0</div>
+                    <div class="lbl">Crash</div>
+                </div>
+                <div class="mini-stat">
+                    <div id="storms-hit" class="n">0</div>
+                    <div class="lbl">Storm</div>
+                </div>
+                <div class="mini-stat">
+                    <div id="medkits-used" class="n">0</div>
+                    <div class="lbl">Med</div>
+                </div>
+                <div class="mini-stat">
+                    <div id="portals-used" class="n">0</div>
+                    <div class="lbl">Port</div>
+                </div>
+                <div class="mini-stat">
+                    <div id="avg-steps" class="n">—</div>
+                    <div class="lbl">Avg Stp</div>
+                </div>
+            </div>
+            <div class="final-score">
+                <div id="total-score" class="score-num">—</div>
+                <div class="score-label">Total Score</div>
+            </div>
+        </div>
+
+        <div class="log-bar">
+            <div id="log" class="log-inner info">
+                <span class="ts">[sys]</span><span class="msg">Connecting to local Python server on port 5050...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Constants (must match server.py exactly) ──────────────────
+    const SERVER_URL      = 'http://localhost:5050';
+    const DMG_COST        = [1, 2, 5, 9, 15];
+    const WALL_PENALTY    = 3;
+    const GOAL_REWARD     = 300;
+    const CRASH_PENALTY   = 200;
+    const SCORE_FLOOR     = -400;   // episode ends immediately if score reaches this
+    const MAX_DAMAGE      = 4;
+    const N_EP            = 5;
+    const STEP_MS         = 160;
+    const STORM_REWARD    = {1:-50, 2:-100, 3:-125};
+    const STORM_DMG_INC   = {1:1,   2:1,    3:2};
+
+    // ── State ─────────────────────────────────────────────────────
+    let ENV_FWD=0.85, ENV_LEFT=0.08, ENV_RIGHT=0.07, UI_GAMMA=0.95;
+    let ROWS=10, COLS=10;
+    let gridData=[], stormSev={}, stormZoneData=null, portalPairs=[];
+    let startPos={row:0,col:0};
+    let droneState={row:0,col:0,damage:0};
+    let trailSet=new Set(), policyMap={};
+    let running=false, serverOnline=false;
+    let savedGridData=null; // original grid before any medkit consumption
+
+    // ── Server comms ──────────────────────────────────────────────
+    async function apiFetch(path, body=null){
+      const opts = body
+        ? {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}
+        : {method:'GET'};
+      const resp = await fetch(SERVER_URL + path, opts);
+      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      return resp.json();
+    }
+
+    async function checkServer(){
+      const el=document.getElementById('srv-status');
+      const help=document.getElementById('conn-help');
+      el.className='srv-status checking'; el.textContent='⏳ Checking...';
+      try{
+        const d = await apiFetch('/api/ping');
+        if(d.ok){
+          serverOnline=true;
+          el.className='srv-status connected'; el.textContent='✓ Server Ready';
+          help.classList.remove('show');
+          document.getElementById('btn-run').disabled=false;
+          document.getElementById('btn-run').innerHTML='▶ Run Policy';
+          logMsg('Connected to server.py on port 5050 — ready!','ok');
+          setStatus('idle','IDLE');
+        } else throw new Error('bad ping');
+      } catch(e){
+        serverOnline=false;
+        el.className='srv-status disconnected'; el.textContent='✗ Offline — Click';
+        help.classList.add('show');
+        document.getElementById('btn-run').disabled=true;
+        document.getElementById('btn-run').innerHTML='✗ Server Offline';
+        setStatus('offline','OFFLINE');
+        logMsg('Cannot reach server.py on :5050 — see instructions on left','err');
+      }
+    }
+    let _retryTimer=setInterval(async()=>{if(!serverOnline)await checkServer();else clearInterval(_retryTimer);},3000);
+
+    // ── Seeded RNG ────────────────────────────────────────────────
+    function seededRand(seed){
+      let s=seed;
+      return()=>{s=(s*1664525+1013904223)&0xffffffff;return(s>>>0)/0xffffffff;};
+    }
+
+    // ── Map generator ─────────────────────────────────────────────
+    function generateMap(){
+      const sizes=[[9,9],[9,10],[10,10],[10,11],[11,11],[11,12],[12,12],[12,13],[13,13],[13,14],[14,14],[15,15]];
+      const seed=Date.now()%9999999;
+      const rng=seededRand(seed);
+      [ROWS,COLS]=sizes[Math.floor(rng()*sizes.length)];
+
+      const fwdChoices=[0.75,0.78,0.81,0.84,0.87,0.90,0.93];
+      ENV_FWD=fwdChoices[Math.floor(rng()*fwdChoices.length)];
+      const rem=parseFloat((1-ENV_FWD).toFixed(4));
+      const lf=0.25+Math.floor(rng()*6)*0.1;
+      ENV_LEFT=parseFloat((rem*lf).toFixed(4));
+      ENV_RIGHT=parseFloat((rem*(1-lf)).toFixed(4));
+
+      stormSev={}; stormZoneData=null; portalPairs=[];
+      gridData=Array.from({length:ROWS},()=>Array(COLS).fill('normal'));
+
+      // Obstacles ~15%
+      const obCount=Math.floor(ROWS*COLS*0.15);
+      for(let i=0,att=0;i<obCount&&att<1000;att++){
+        const r=Math.floor(rng()*ROWS),c=Math.floor(rng()*COLS);
+        if(gridData[r][c]==='normal'){gridData[r][c]='obstacle';i++;}
+      }
+
+      // Storm zone (85% chance)
+      if(rng()<0.85){
+        const minH=Math.max(2,Math.floor(ROWS*0.2)),maxH=Math.floor(ROWS*0.38);
+        const minW=Math.max(2,Math.floor(COLS*0.2)),maxW=Math.floor(COLS*0.38);
+        const h=minH+Math.floor(rng()*(maxH-minH+1));
+        const w=minW+Math.floor(rng()*(maxW-minW+1));
+        const r1=Math.floor(rng()*(ROWS-h)),c1=Math.floor(rng()*(COLS-w));
+        const eMin=2+Math.floor(rng()*4),eMax=eMin+3+Math.floor(rng()*5);
+        stormZoneData={r1,c1,r2:r1+h-1,c2:c1+w-1,eMin,eMax,eExpected:(eMin+eMax)/2};
+        document.getElementById('env-zone').textContent=`${r1},${c1}→${r1+h-1},${c1+w-1}`;
+        document.getElementById('env-zone-pen').textContent=`${eMin}–${eMax}`;
+      } else {
+        document.getElementById('env-zone').textContent='none';
+        document.getElementById('env-zone-pen').textContent='—';
+      }
+
+      // Storms 3-5
+      const stCount=3+Math.floor(rng()*3);
+      for(let i=0;i<stCount;){
+        const r=Math.floor(rng()*ROWS),c=Math.floor(rng()*COLS);
+        if(gridData[r][c]==='normal'){
+          gridData[r][c]='storm';
+          const sv=rng();
+          stormSev[`${r},${c}`]=sv<0.40?1:sv<0.75?2:3;
+          i++;
+        }
+      }
+
+      // Goals 1-2
+      const goalCount=1+Math.floor(rng()*2);
+      const cands=[];
+      for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++)
+        if(gridData[r][c]==='normal') cands.push({row:r,col:c,d:Math.abs(r-(ROWS-1))+Math.abs(c-(COLS-1))});
+      cands.sort((a,b)=>a.d-b.d);
+      let gp=0;
+      for(const cd of cands){if(gp>=goalCount)break;if(cd.d<4)continue;gridData[cd.row][cd.col]='goal';gp++;}
+      if(gp===0) gridData[ROWS-1][COLS-1]='goal';
+
+      // Medkits 1-3
+      const mkCount=1+Math.floor(rng()*3);
+      const normCells=[];
+      for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++)
+        if(gridData[r][c]==='normal') normCells.push({r,c});
+      shuffleArr(normCells,rng);
+      let mk=0;
+      for(const{r,c}of normCells){if(mk>=mkCount)break;gridData[r][c]='medkit';mk++;}
+
+      // Portals on large maps
+      if(ROWS*COLS>=120){
+        const pairCount=1+Math.floor(rng()*2);
+        const avail=[];
+        for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++)
+          if(gridData[r][c]==='normal') avail.push({r,c});
+        shuffleArr(avail,rng);
+        for(let p=0,pi=0;p<pairCount&&pi+1<avail.length;p++){
+          const a=avail[pi++],b=avail[pi++];
+          gridData[a.r][a.c]='portal_a'; gridData[b.r][b.c]='portal_b';
+          portalPairs.push({a:{row:a.r,col:a.c},b:{row:b.r,col:b.c}});
+        }
+        document.getElementById('env-portals').textContent=portalPairs.length+'×';
+      } else {
+        document.getElementById('env-portals').textContent='none';
+      }
+
+      // Start position (far from goals)
+      const goalCells=[];
+      for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++)
+        if(gridData[r][c]==='goal') goalCells.push({r,c});
+      const minDistToGoal=(r,c)=>Math.min(...goalCells.map(g=>Math.abs(g.r-r)+Math.abs(g.c-c)));
+      const threshold=(ROWS+COLS-2)*0.50;
+      const farCells=[];
+      for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++)
+        if(gridData[r][c]==='normal'&&minDistToGoal(r,c)>=threshold) farCells.push({r,c});
+      if(farCells.length>0){shuffleArr(farCells,rng);startPos={row:farCells[0].r,col:farCells[0].c};}
+      else{
+        let best=null,bestD=0;
+        for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++)
+          if(gridData[r][c]==='normal'){const d=minDistToGoal(r,c);if(d>bestD){bestD=d;best={row:r,col:c};}}
+        startPos=best||{row:0,col:0};
+      }
+
+      ensureConnected();
+      savedGridData = gridData.map(row => [...row]); // snapshot before any episode runs
+      document.getElementById('grid-info').textContent=`${ROWS}×${COLS}`;
+      document.getElementById('env-fwd').textContent=(ENV_FWD*100).toFixed(0)+'%';
+      document.getElementById('env-left').textContent=(ENV_LEFT*100).toFixed(1)+'%';
+      document.getElementById('env-right').textContent=(ENV_RIGHT*100).toFixed(1)+'%';
+      logMsg(`New ${ROWS}×${COLS} map · start(${startPos.row},${startPos.col}) · ${mk} medkits · zone=${stormZoneData?'yes':'no'}`,'info');
+    }
+
+    function shuffleArr(arr,rng){
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+    }
+    function nbList(r,c){
+      const nb=[];
+      for(const[dr,dc]of[[-1,0],[1,0],[0,1],[0,-1]]){
+        const nr=r+dr,nc=c+dc;
+        if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&gridData[nr][nc]!=='obstacle')nb.push({row:nr,col:nc});
+      }
+      return nb;
+    }
+    function ensureConnected(){
+      const vis=new Set(),q=[startPos];vis.add(`${startPos.row},${startPos.col}`);
+      let goalFound=false;
+      while(q.length){
+        const cur=q.shift();
+        if(gridData[cur.row][cur.col]==='goal'){goalFound=true;break;}
+        for(const nb of nbList(cur.row,cur.col)){
+          const k=`${nb.row},${nb.col}`;if(!vis.has(k)){vis.add(k);q.push(nb);}
+        }
+      }
+      if(!goalFound){
+        let gr=-1,gc=-1;
+        outer:for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(gridData[r][c]==='goal'){gr=r;gc=c;break outer;}
+        if(gr===-1){gridData[ROWS-1][COLS-1]='goal';gr=ROWS-1;gc=COLS-1;}
+        let r=startPos.row,c=startPos.col;
+        while(r!==gr||c!==gc){
+          if(r<gr)r++;else if(r>gr)r--;else if(c<gc)c++;else c--;
+          if(gridData[r][c]==='obstacle')gridData[r][c]='normal';
+        }
+      }
+    }
+
+    // ── MDP Simulation (mirrors server.py exactly) ────────────────
+    const MOVE={N:[-1,0],S:[1,0],E:[0,1],W:[0,-1]};
+    const PERP={N:['W','E'],S:['E','W'],E:['N','S'],W:['S','N']};
+
+    function isInZone(r,c){
+      if(!stormZoneData)return false;
+      return r>=stormZoneData.r1&&r<=stormZoneData.r2&&c>=stormZoneData.c1&&c<=stormZoneData.c2;
+    }
+    function getPortalDest(r,c){
+      for(const p of portalPairs){
+        if(p.a.row===r&&p.a.col===c)return{row:p.b.row,col:p.b.col};
+        if(p.b.row===r&&p.b.col===c)return{row:p.a.row,col:p.a.col};
+      }
+      return null;
+    }
+    function tryMove(state,action){
+      const[dr,dc]=MOVE[action];
+      const nr=state.row+dr,nc=state.col+dc;
+      if(nr<0||nr>=ROWS||nc<0||nc>=COLS||gridData[nr][nc]==='obstacle')
+        return{row:state.row,col:state.col,wallHit:true};
+      return{row:nr,col:nc,wallHit:false};
+    }
+    function resolvePortal(r,c){
+      const t=gridData[r][c];
+      if(t==='portal_a'||t==='portal_b'){const d=getPortalDest(r,c);if(d)return{...d,wasPortal:true};}
+      return{row:r,col:c,wasPortal:false};
+    }
+    function getNextDamage(dmg,destType,destRow,destCol){
+      if(destType==='storm'){
+        const sev=stormSev[`${destRow},${destCol}`]||1;
+        return dmg+STORM_DMG_INC[sev];
+      }
+      if(destType==='medkit') return Math.max(dmg-1,0); // only reachable for fresh medkits
+      return dmg;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // computeReward: mirrors server.py get_reward() exactly.
+    // wallHit is detected by position only (NOT damage), matching server.
+    // Returns GOAL_REWARD when landing on goal.
+    // ─────────────────────────────────────────────────────────────
+    function computeReward(state, nstate){
+      const t = gridData[nstate.row][nstate.col];
+      // wall hit: same (row,col) regardless of damage change
+      const wallHit = (state.row === nstate.row && state.col === nstate.col);
+
+      if(t === 'goal') return GOAL_REWARD;
+
+      let r = 0;
+      if(t === 'storm'){
+        r = STORM_REWARD[stormSev[`${nstate.row},${nstate.col}`]||1];
+      } else if(t === 'medkit'){
+        // medkits in gridData are always fresh (consumed ones become 'normal')
+        r = 25;
+      } else if(t === 'portal_a' || t === 'portal_b'){
+        r = -5;
+      } else {
+        r = -DMG_COST[state.damage||0];
+      }
+
+      if(wallHit) r -= WALL_PENALTY;
+
+      // Storm zone: random at runtime (eMin..eMax)
+      if(t !== 'goal' && isInZone(nstate.row, nstate.col) && stormZoneData){
+        r -= (stormZoneData.eMin + Math.random() * (stormZoneData.eMax - stormZoneData.eMin));
+      }
+
+      return r;
+    }
+
+    function isTerm(state){ return gridData[state.row][state.col]==='goal'; }
+
+    function stochasticMove(state, action){
+      const perps=PERP[action];
+      const rnd=Math.random();
+      let rawPos;
+      if(rnd<ENV_FWD)              rawPos=tryMove(state,action);
+      else if(rnd<ENV_FWD+ENV_LEFT) rawPos=tryMove(state,perps[0]);
+      else                           rawPos=tryMove(state,perps[1]);
+
+      const wallHit=rawPos.wallHit||false;
+      const resolved=resolvePortal(rawPos.row,rawPos.col);
+      const destType=gridData[resolved.row][resolved.col];
+      const newDmg=getNextDamage(state.damage,destType,resolved.row,resolved.col);
+      return{row:resolved.row,col:resolved.col,damage:Math.min(newDmg,5),wallHit,wasPortal:resolved.wasPortal};
+    }
+
+    // ── Policy runner ─────────────────────────────────────────────
+    async function runPolicy(){
+      if(running||!serverOnline)return;
+      const errBox=document.getElementById('err-box');
+      errBox.style.display='none';
+      running=true; policyMap={};
+      resetUI();
+      document.getElementById('btn-run').disabled=true;
+      document.getElementById('btn-run').innerHTML='<span class="spin">⟳</span> Sending map...';
+      document.getElementById('btn-map').disabled=true;
+      setStatus('computing','COMPUTING');
+
+      // Restore original grid so medkits are fresh for this run
+      if(savedGridData) gridData = savedGridData.map(row => [...row]);
+
+      // 1. Send map to server
+      try{
+        logMsg('Sending map to server.py...','info');
+        await apiFetch('/api/init',{
+          rows:ROWS, cols:COLS, grid:gridData,
+          stormSev:stormSev, stormZone:stormZoneData,
+          portalPairs:portalPairs, startPos:startPos,
+          fwd:ENV_FWD, left:ENV_LEFT, right:ENV_RIGHT, gamma:UI_GAMMA
+        });
+      } catch(e){
+        showError(`Cannot reach server: ${e.message}\nMake sure server.py is running on port 5050`);
+        serverOnline=false; await checkServer(); resetRunBtn(); return;
+      }
+
+      // 2. Run compute_policy on server
+      document.getElementById('btn-run').innerHTML='<span class="spin">⟳</span> Running policy.py...';
+      logMsg('Calling compute_policy(api) in policy.py...','info');
+
+      let policy;
+      try{
+        const result=await apiFetch('/api/compute_policy',{});
+        if(!result.ok) throw new Error(result.error||'unknown error');
+        policy=result.policy;
+      } catch(e){
+        showError(`Python error:\n${e.message}`);
+        resetRunBtn(); return;
+      }
+
+      policyMap=policy;
+      const allNT=[];
+      for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++)
+        if(gridData[r][c]!=='obstacle'&&gridData[r][c]!=='goal')
+          for(let d=0;d<=MAX_DAMAGE;d++) allNT.push([r,c,d]);
+      const covCount=allNT.filter(([r,c,d])=>['N','S','E','W'].includes(policy[`${r},${c},${d}`])).length;
+      const covPct=allNT.length>0?Math.round(100*covCount/allNT.length):0;
+
+      droneState={...startPos,damage:0}; trailSet=new Set();
+      renderGrid();
+      logMsg(`Policy ready · ${covCount}/${allNT.length} states covered (${covPct}%)`,covPct===100?'ok':'warn');
+      await sleep(250);
+
+      document.getElementById('btn-run').innerHTML='<span class="spin">⟳</span> Flying...';
+      setStatus('running','FLYING');
+
+      let totalScore=0,totalGoals=0,totalCrashes=0,totalStorms=0,totalMedkits=0,totalPortals=0;
+      const stepsArr=[];
+
+      for(let ep=1;ep<=N_EP;ep++){
+        document.getElementById('ep-num').textContent=ep;
+        document.getElementById(`dot-${ep}`).className='ep-dot active';
+        const epCell=document.getElementById(`epcell-${ep}`);
+        if(epCell) epCell.className='ep-cell active';
+
+        droneState={row:startPos.row,col:startPos.col,damage:0};
+        trailSet=new Set();
+        let epReward=0, steps=0, outcome='loss', epMaxReward=-Infinity;
+        let stormHits=0, mkHits=0, portHits=0;
+
+        logMsg(`Ep${ep}/${N_EP} — start(${startPos.row},${startPos.col})`,'info');
+
+        // ── Episode loop ──────────────────────────────────────────
+        // Runs until: goal reached, crash (dmg≥5), or score ≤ SCORE_FLOOR (-400)
+        // Number of steps is unlimited.
+        while(true){
+          trailSet.add(`${droneState.row},${droneState.col}`);
+          updateDamagePips(droneState.damage);
+          renderGrid();
+          document.getElementById('ep-step').textContent=steps;
+          document.getElementById('ep-reward').textContent=epReward.toFixed(0);
+          document.getElementById('ep-reward').className=`val ${epReward>=0?'green':'red'}`;
+          if(epReward>epMaxReward) epMaxReward=epReward;
+
+          // Terminal check: drone is sitting on goal from previous step
+          if(isTerm(droneState)){ outcome='goal'; break; }
+
+          const sKey=`${droneState.row},${droneState.col},${droneState.damage}`;
+          const action=policy[sKey]||'N';
+          const prev={...droneState};
+          const res=stochasticMove(droneState,action);
+          droneState={row:res.row,col:res.col,damage:res.damage};
+
+          // Crash check (damage ≥ 5)
+          if(droneState.damage>=5){
+            outcome='crash';
+            epReward-=CRASH_PENALTY;
+            renderGrid(droneState);
+            updateDamagePips(5);
+            const td=document.querySelector(`td[data-r="${droneState.row}"][data-c="${droneState.col}"]`);
+            if(td){td.classList.add('crash-anim');setTimeout(()=>td.classList.remove('crash-anim'),400);}
+            logMsg(`💥 CRASH! dmg→5 at (${droneState.row},${droneState.col})`,'crash');
+            await sleep(600); break;
+          }
+
+          // Compute reward for this transition (includes +300 if landed on goal)
+          const stepReward=computeReward(prev,droneState);
+          epReward+=stepReward;
+          steps++;
+
+          // If drone just landed on goal, break (terminal reached this step)
+          if(isTerm(droneState)){ outcome='goal'; break; }
+
+          // Score floor: if score hits -400 the episode is lost immediately
+          if(epReward<=SCORE_FLOOR){ outcome='loss'; break; }
+
+          // Side effects
+          const destType=gridData[droneState.row][droneState.col];
+          const mkKey=`${droneState.row},${droneState.col}`;
+
+          if(res.wallHit){
+            const td=document.querySelector(`td[data-r="${prev.row}"][data-c="${prev.col}"]`);
+            if(td){td.classList.add('wall-hit');setTimeout(()=>td.classList.remove('wall-hit'),280);}
+          }
+          if(destType==='storm'){
+            stormHits++;
+            const sev=stormSev[`${droneState.row},${droneState.col}`]||1;
+            const td=document.querySelector(`td[data-r="${droneState.row}"][data-c="${droneState.col}"]`);
+            if(td){td.classList.add('storm-hit');setTimeout(()=>td.classList.remove('storm-hit'),380);}
+            logMsg(`⛈ Storm S${sev}! dmg→${droneState.damage}`,'warn');
+          }
+          if(destType==='medkit'){
+            // Medkit consumed: remove it permanently from the grid
+            mkHits++;
+            gridData[droneState.row][droneState.col]='normal';
+            const td=document.querySelector(`td[data-r="${droneState.row}"][data-c="${droneState.col}"]`);
+            if(td){td.classList.add('medkit-pickup');setTimeout(()=>td.classList.remove('medkit-pickup'),500);}
+            logMsg(`🩹 Medkit consumed! dmg:${prev.damage}→${droneState.damage} — gone forever`,'med');
+          }
+          if(res.wasPortal){
+            portHits++;
+            const td=document.querySelector(`td[data-r="${droneState.row}"][data-c="${droneState.col}"]`);
+            if(td){td.classList.add('portal-used');setTimeout(()=>td.classList.remove('portal-used'),600);}
+            logMsg(`🌀 Portal→(${droneState.row},${droneState.col})`,'por');
+          }
+          if(epReward>epMaxReward) epMaxReward=epReward;
+          await sleep(STEP_MS);
+        }
+        // ─────────────────────────────────────────────────────────
+
+        if(epReward>epMaxReward) epMaxReward=epReward;
+
+        renderGrid(outcome==='crash'?droneState:null);
+        totalScore+=epReward; stepsArr.push(steps);
+        if(outcome==='goal')  totalGoals++;
+        if(outcome==='crash') totalCrashes++;
+        totalStorms+=stormHits; totalMedkits+=mkHits; totalPortals+=portHits;
+
+        const dot=document.getElementById(`dot-${ep}`);
+        if(outcome==='goal')       {dot.className='ep-dot done-ok';dot.textContent='✓';}
+        else if(outcome==='crash') {dot.className='ep-dot done-crash';dot.textContent='💥';}
+        else                       {dot.className='ep-dot done-timeout';dot.textContent='⛔';}
+        updateEpCell(ep,epReward,epMaxReward,outcome);
+
+        const oc=outcome==='goal'?'ok':outcome==='crash'?'crash':'warn';
+        logMsg(`Ep${ep}: ${outcome==='goal'?'🎯 GOAL':outcome==='crash'?'💥 CRASH':'⛔ Score Limit'} · score=${epReward.toFixed(0)} · steps=${steps}`,oc);
+        document.getElementById('ep-reward').textContent=epReward.toFixed(0);
+        await sleep(300);
+      }
+
+      const avg=Math.round(stepsArr.reduce((a,b)=>a+b,0)/stepsArr.length);
+      function setN(id,val,litClass){
+        const el=document.getElementById(id);el.textContent=val;
+        if(litClass&&val>0)el.className=`n ${litClass}`;
+      }
+      setN('goals-hit',totalGoals,'lit-green');
+      setN('crashes-n',totalCrashes,'lit-crash');
+      setN('storms-hit',totalStorms,'lit-red');
+      setN('medkits-used',totalMedkits,'lit-med');
+      setN('portals-used',totalPortals,'lit-por');
+      document.getElementById('avg-steps').textContent=avg;
+      const sc=document.getElementById('total-score');
+      sc.textContent=totalScore.toFixed(0);
+      sc.className=`score-num ${totalScore>0?'lit':''}`;
+      updateDamagePips(0);
+
+      const allGood=totalGoals===N_EP, anyCrash=totalCrashes>0;
+      setStatus(allGood?'done':anyCrash?'crashed':'idle',allGood?'PERFECT':anyCrash?'CRASHED':'DONE');
+      logMsg(`══ Score:${totalScore.toFixed(0)} · Goals:${totalGoals}/${N_EP} · Crashes:${totalCrashes} · Avg:${avg}stp ══`,allGood?'ok':anyCrash?'crash':'info');
+
+      running=false; resetRunBtn();
+    }
+
+    function resetRunBtn(){
+      running=false;
+      document.getElementById('btn-run').disabled=!serverOnline;
+      document.getElementById('btn-run').innerHTML=serverOnline?'▶ Run Policy':'✗ Server Offline';
+      document.getElementById('btn-map').disabled=false;
+    }
+    function showError(msg){
+      const errBox=document.getElementById('err-box');
+      errBox.textContent=`⚠ ${msg}`;
+      errBox.style.display='block';
+      logMsg(msg.split('\n')[0],'err');
+      setStatus('error','ERROR');
+    }
+
+    // ── Episode score cells ───────────────────────────────────────
+    function buildEpTable(){
+      const cont=document.getElementById('ep-table'); cont.innerHTML='';
+      for(let i=1;i<=N_EP;i++){
+        const cell=document.createElement('div');
+        cell.className='ep-cell'; cell.id=`epcell-${i}`;
+        cell.innerHTML=`<div class="ep-n">Ep ${i}</div><div class="ep-sc" id="epsc-${i}">—</div><div class="ep-mx" id="epmx-${i}">max —</div>`;
+        cont.appendChild(cell);
+      }
+    }
+    function updateEpCell(ep,score,maxScore,outcome){
+      const cell=document.getElementById(`epcell-${ep}`);
+      if(!cell)return;
+      cell.className=`ep-cell ${outcome==='goal'?'ok':outcome==='crash'?'crash':'timeout'}`;  // 'loss' maps to timeout style
+      document.getElementById(`epsc-${ep}`).textContent=score.toFixed(0);
+      document.getElementById(`epmx-${ep}`).textContent=`max ${maxScore.toFixed(0)}`;
+    }
+
+    // ── Grid rendering ────────────────────────────────────────────
+    function cellSize(){
+      const maxW=Math.floor((window.innerWidth-455)/COLS);
+      const maxH=Math.floor((window.innerHeight-185)/ROWS);
+      return Math.max(28,Math.min(52,maxW,maxH));
+    }
+    function buildGrid(){
+      const table=document.getElementById('grid'); table.innerHTML='';
+      const cs=cellSize();
+      for(let r=0;r<ROWS;r++){
+        const tr=table.insertRow();
+        for(let c=0;c<COLS;c++){
+          const td=tr.insertCell();
+          td.dataset.r=r; td.dataset.c=c;
+          td.style.width=cs+'px'; td.style.height=cs+'px';
+        }
+      }
+    }
+    const portalLabels={};
+    function updatePortalLabels(){
+      for(const k in portalLabels)delete portalLabels[k];
+      portalPairs.forEach((pair,i)=>{
+        const L=String.fromCharCode(65+i);
+        portalLabels[`${pair.a.row},${pair.a.col}`]=L+'→';
+        portalLabels[`${pair.b.row},${pair.b.col}`]='→'+L;
+      });
+    }
+    function renderGrid(crashPos){
+      const cs=cellSize();
+      const fs=cs<38?'12px':'15px';
+      const cfs=cs<38?'5.5px':'6px';
+      for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+        const td=document.querySelector(`td[data-r="${r}"][data-c="${c}"]`);
+        if(!td)continue;
+        td.style.width=cs+'px'; td.style.height=cs+'px';
+        const type=gridData[r][c];
+        const isDrone=droneState.row===r&&droneState.col===c;
+        const isTrail=trailSet.has(`${r},${c}`);
+        const inZone=isInZone(r,c)&&type!=='obstacle';
+        const sev=type==='storm'?(stormSev[`${r},${c}`]||1):0;
+        const isCrash=crashPos&&crashPos.row===r&&crashPos.col===c;
+        const cellType=type==='storm'?`storm${sev}`:type;
+        td.className=`cell ${cellType}${inZone?' in-zone':''}${isTrail?' trail':''}${isDrone?' drone-here':''}`;
+
+        let html=`<span class="cell-coords" style="font-size:${cfs}">${r},${c}</span>`;
+        if(inZone&&type!=='storm'&&type!=='goal'&&!isDrone) html+=`<span class="zone-marker">🌪</span>`;
+        if(startPos.row===r&&startPos.col===c&&!isDrone)
+          html+=`<span style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);font-size:${cfs};color:var(--blue);opacity:.7">⬆S</span>`;
+
+        if(isDrone){
+          if(isCrash){html+=`<div class="crash-overlay">💥</div>`;}
+          else{
+            const hi=['🟢','🟡','🟠','🔴','💀'][Math.min(droneState.damage,4)];
+            html+=`<div class="drone-ring"></div><div class="drone-wrap" style="font-size:${cs<40?'14px':'18px'}">🚁</div><div class="drone-health">${hi}</div>`;
+          }
+        } else if(type==='obstacle'){html+=`<span class="cell-icon" style="font-size:${fs}">⬛</span>`;}
+        else if(type==='goal'){html+=`<span class="cell-icon" style="font-size:${fs}">🎯</span>`;}
+        else if(type==='storm'){
+          html+=`<span class="cell-icon" style="font-size:${sev===1?'11px':sev===2?'13px':fs}">⛈️</span>`;
+          html+=`<span class="cell-sev s${sev}">S${sev}</span>`;
+        } else if(type==='medkit'){html+=`<span class="cell-icon" style="font-size:${fs}">🩹</span>`;}
+        else if(type==='portal_a'||type==='portal_b'){
+          html+=`<span class="cell-icon" style="font-size:${fs}">🌀</span>`;
+          const pl=portalLabels[`${r},${c}`];
+          if(pl)html+=`<span class="cell-portal-id">${pl}</span>`;
+        }
+
+        const action=policyMap[`${r},${c},0`];
+        if(action&&!isDrone&&type!=='obstacle'&&type!=='goal')
+          html+=`<span class="cell-action" style="font-size:${cs<38?'8px':'10px'}">${{N:'↑',S:'↓',E:'→',W:'←'}[action]||''}</span>`;
+
+        td.innerHTML=html;
+      }
+    }
+
+    // ── UI helpers ────────────────────────────────────────────────
+    function setStatus(cls,text){
+      const el=document.getElementById('status-pill');
+      el.className=`status-pill ${cls}`;el.textContent=text;
+    }
+    function updateDamagePips(dmg){
+      const colors=['d0','d1','d2','d3','d4'];
+      for(let i=0;i<5;i++){
+        const pip=document.getElementById(`pip${i}`);
+        if(pip)pip.className=`pip ${i<dmg?colors[Math.min(dmg-1,4)]:'empty'}`;
+      }
+    }
+    function resetUI(){
+      ['ep-num','ep-step','ep-reward'].forEach(id=>document.getElementById(id).textContent='—');
+      document.getElementById('total-score').textContent='—';
+      document.getElementById('total-score').className='score-num';
+      ['goals-hit','crashes-n','storms-hit','medkits-used','portals-used'].forEach(id=>{
+        document.getElementById(id).textContent='0';
+        document.getElementById(id).className='n';
+      });
+      document.getElementById('avg-steps').textContent='—';
+      updateDamagePips(0);
+      const dots=document.getElementById('ep-dots');dots.innerHTML='';
+      for(let i=1;i<=N_EP;i++){
+        const d=document.createElement('div');
+        d.className='ep-dot';d.id=`dot-${i}`;d.textContent=i;dots.appendChild(d);
+      }
+      buildEpTable();
+    }
+    function newMap(){
+      if(running)return;
+      generateMap(); buildGrid(); updatePortalLabels();
+      droneState={...startPos,damage:0}; trailSet=new Set(); policyMap={};
+      renderGrid(); resetUI(); setStatus('idle','IDLE');
+    }
+    function logMsg(msg,type='info'){
+      const el=document.getElementById('log');
+      const now=new Date();
+      const ts=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+      el.className=`log-inner ${type}`;
+      el.innerHTML=`<span class="ts">[${ts}]</span><span class="msg"> ${msg}</span>`;
+    }
+    function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+    // ── Init ──────────────────────────────────────────────────────
+    generateMap(); buildGrid(); updatePortalLabels();
+    droneState={...startPos,damage:0};
+    renderGrid(); resetUI();
+    checkServer();
+</script>
+</body>
+</html>

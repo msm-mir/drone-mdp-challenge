@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پروژه درس هوش مصنوعی — Drone MDP Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --bg: #0d1117;
+          --surface: #161b22;
+          --surface2: #1c2330;
+          --surface3: #21262d;
+          --border: #30363d;
+          --border2: #484f58;
+          --blue: #58a6ff;
+          --blue-dim: #1f6feb;
+          --blue-bg: #0d2136;
+          --blue-border: #1f6feb;
+          --green: #3fb950;
+          --green-bg: #0d2818;
+          --green-border: #238636;
+          --red: #f85149;
+          --red-bg: #2d1117;
+          --red-border: #da3633;
+          --orange: #d29922;
+          --orange-bg: #272115;
+          --orange-border: #9e6a03;
+          --purple: #a371f7;
+          --purple-bg: #1e1230;
+          --yellow: #e3b341;
+          --muted: #8b949e;
+          --text: #e6edf3;
+          --text2: #c9d1d9;
+          --code-bg: #161b22;
+          --code-text: #ff7b72;
+          --accent: #58a6ff;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+          font-family: 'Vazirmatn', sans-serif;
+          background: var(--bg);
+          color: var(--text);
+          line-height: 1.8;
+          font-size: 15px;
+          min-height: 100vh;
+        }
+
+        body::before {
+          content: '';
+          position: fixed;
+          inset: 0;
+          background:
+            radial-gradient(ellipse 80% 50% at 20% 0%, rgba(31,111,235,0.08) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 40% at 80% 100%, rgba(163,113,247,0.06) 0%, transparent 60%);
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        /* ══════════════════════════════
+           COVER PAGE
+        ══════════════════════════════ */
+        .cover-page {
+          position: relative;
+          z-index: 1;
+          min-height: 100vh;
+          background: #ffffff;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: space-between;
+          padding: 60px 40px 50px;
+          text-align: center;
+          direction: rtl;
+        }
+
+        .cover-top {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0;
+          width: 100%;
+        }
+
+        .cover-logo {
+          width: 150px;
+          height: 150px;
+          object-fit: contain;
+          margin-bottom: 22px;
+        }
+
+        .cover-logo-fallback {
+          width: 150px;
+          height: 150px;
+          border-radius: 50%;
+          border: 3px solid #1a3a6b;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 22px;
+          background: #eef3fb;
+          font-family: 'Vazirmatn', sans-serif;
+          font-size: 13px;
+          color: #1a3a6b;
+          font-weight: 700;
+        }
+
+        .cover-uni-name {
+          font-size: 26px;
+          font-weight: 800;
+          color: #1a3a6b;
+          margin-bottom: 8px;
+          letter-spacing: 0.01em;
+        }
+
+        .cover-faculty {
+          font-size: 20px;
+          font-weight: 700;
+          color: #1a3a6b;
+          margin-bottom: 0;
+        }
+
+        .cover-divider {
+          width: 60%;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, #1a3a6b 30%, #1a3a6b 70%, transparent);
+          margin: 32px auto;
+          opacity: 0.25;
+        }
+
+        .cover-middle {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+        }
+
+        .cover-course {
+          font-size: 20px;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin-bottom: 4px;
+        }
+
+        .cover-project {
+          font-size: 19px;
+          font-weight: 700;
+          color: #1a3a6b;
+          direction: rtl;
+        }
+
+        .cover-info-block {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+          width: 100%;
+        }
+
+        .cover-row {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .cover-label {
+          font-size: 17px;
+          font-weight: 700;
+          color: #1a1a1a;
+        }
+
+        .cover-label span {
+          font-weight: 800;
+        }
+
+        .cover-name {
+          font-size: 16px;
+          font-weight: 500;
+          color: #2c2c2c;
+          line-height: 1.9;
+        }
+
+        .cover-name.first {
+          font-weight: 700;
+          color: #1a3a6b;
+        }
+
+        .cover-semester {
+          font-size: 15px;
+          font-weight: 600;
+          color: #444;
+          direction: rtl;
+          padding-top: 8px;
+        }
+
+        /* ══════════════════════════════
+           SCROLL INDICATOR
+        ══════════════════════════════ */
+        .scroll-hint {
+          margin-top: 28px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          cursor: pointer;
+          opacity: 0.5;
+          transition: opacity 0.2s;
+        }
+        .scroll-hint:hover { opacity: 1; }
+        .scroll-hint span { font-size: 12px; color: #888; }
+        .scroll-arrow {
+          width: 28px;
+          height: 28px;
+          border: 2px solid #888;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          color: #888;
+          animation: bounce 1.5s ease-in-out infinite;
+        }
+        @keyframes bounce {
+          0%,100% { transform: translateY(0); }
+          50% { transform: translateY(5px); }
+        }
+
+        /* ══════════════════════════════
+           MAIN CONTENT (same as original)
+        ══════════════════════════════ */
+        .page-wrapper {
+          position: relative;
+          z-index: 1;
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 0 24px 80px;
+        }
+
+        .hero {
+          text-align: center;
+          padding: 72px 0 56px;
+          border-bottom: 1px solid var(--border);
+          margin-bottom: 56px;
+          position: relative;
+        }
+
+        .hero-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: var(--blue-bg);
+          border: 1px solid var(--blue-border);
+          color: var(--blue);
+          border-radius: 99px;
+          padding: 6px 16px;
+          font-size: 13px;
+          font-weight: 600;
+          margin-bottom: 28px;
+          letter-spacing: 0.02em;
+        }
+
+        .hero-icon {
+          font-size: 56px;
+          display: block;
+          margin-bottom: 16px;
+          filter: drop-shadow(0 0 24px rgba(88,166,255,0.4));
+          animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+
+        .hero h1 {
+          font-size: 38px;
+          font-weight: 800;
+          color: var(--text);
+          line-height: 1.2;
+          margin-bottom: 10px;
+          background: linear-gradient(135deg, #e6edf3 0%, #58a6ff 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .hero-sub {
+          font-size: 17px;
+          color: var(--blue);
+          font-weight: 700;
+          margin-bottom: 12px;
+          letter-spacing: 0.03em;
+        }
+
+        .hero-desc {
+          color: var(--muted);
+          font-size: 14px;
+          font-style: italic;
+        }
+
+        .toc {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 28px 32px;
+          margin-bottom: 56px;
+        }
+
+        .toc-title {
+          font-size: 13px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--muted);
+          margin-bottom: 16px;
+        }
+
+        .toc-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 6px 32px;
+        }
+
+        .toc a {
+          color: var(--blue);
+          text-decoration: none;
+          font-size: 14px;
+          padding: 4px 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: color 0.2s;
+        }
+
+        .toc a:hover { color: var(--text); }
+
+        .toc-num {
+          color: var(--muted);
+          font-size: 12px;
+          min-width: 20px;
+        }
+
+        .section {
+          margin-bottom: 56px;
+          opacity: 0;
+          transform: translateY(20px);
+          animation: fadeUp 0.5s forwards;
+        }
+
+        @keyframes fadeUp {
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section:nth-child(1) { animation-delay: 0.05s; }
+        .section:nth-child(2) { animation-delay: 0.1s; }
+        .section:nth-child(3) { animation-delay: 0.15s; }
+        .section:nth-child(4) { animation-delay: 0.2s; }
+        .section:nth-child(5) { animation-delay: 0.25s; }
+        .section:nth-child(6) { animation-delay: 0.3s; }
+        .section:nth-child(7) { animation-delay: 0.35s; }
+        .section:nth-child(8) { animation-delay: 0.4s; }
+        .section:nth-child(9) { animation-delay: 0.45s; }
+        .section:nth-child(10) { animation-delay: 0.5s; }
+        .section:nth-child(11) { animation-delay: 0.55s; }
+        .section:nth-child(12) { animation-delay: 0.6s; }
+
+        .h1 {
+          font-size: 24px;
+          font-weight: 800;
+          color: var(--text);
+          margin-bottom: 20px;
+          padding-bottom: 12px;
+          border-bottom: 2px solid var(--blue-dim);
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .h1-num {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          background: var(--blue-dim);
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 800;
+          color: white;
+          flex-shrink: 0;
+        }
+
+        .h2 {
+          font-size: 17px;
+          font-weight: 700;
+          color: var(--blue);
+          margin: 28px 0 12px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .h2::before {
+          content: '';
+          width: 4px;
+          height: 18px;
+          background: var(--blue-dim);
+          border-radius: 2px;
+          flex-shrink: 0;
+        }
+
+        p { color: var(--text2); margin-bottom: 14px; line-height: 1.85; }
+        strong { color: var(--text); font-weight: 700; }
+
+        code {
+          font-family: 'SFMono-Regular', 'Cascadia Code', 'Fira Code', monospace;
+          background: var(--surface3);
+          border: 1px solid var(--border);
+          color: var(--code-text);
+          border-radius: 4px;
+          padding: 2px 7px;
+          font-size: 13px;
+          font-weight: 700;
+          direction: ltr;
+          display: inline-block;
+        }
+
+        .callout {
+          border-radius: 10px;
+          padding: 16px 20px;
+          margin: 18px 0;
+          border-width: 1px;
+          border-style: solid;
+          display: flex;
+          gap: 14px;
+          align-items: flex-start;
+        }
+
+        .callout-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+        .callout-body { flex: 1; font-size: 14px; line-height: 1.7; }
+        .callout.blue { background: var(--blue-bg); border-color: var(--blue-border); color: #93c5fd; }
+        .callout.orange { background: var(--orange-bg); border-color: var(--orange-border); color: #fcd34d; }
+        .callout.red { background: var(--red-bg); border-color: var(--red-border); color: #fca5a5; }
+        .callout.green { background: var(--green-bg); border-color: var(--green-border); color: #86efac; }
+
+        .table-wrap {
+          overflow-x: auto;
+          margin: 16px 0;
+          border-radius: 10px;
+          border: 1px solid var(--border);
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 14px; direction: rtl; }
+
+        th {
+          background: var(--surface3);
+          color: var(--text);
+          font-weight: 700;
+          padding: 12px 16px;
+          text-align: right;
+          border-bottom: 2px solid var(--blue-dim);
+          white-space: nowrap;
+        }
+
+        td {
+          padding: 11px 16px;
+          border-bottom: 1px solid var(--border);
+          color: var(--text2);
+          vertical-align: top;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--surface2); }
+
+        td.green-cell { background: rgba(63,185,80,0.08); color: #86efac; }
+        td.red-cell { background: rgba(248,81,73,0.1); color: #fca5a5; }
+        td.orange-cell { background: rgba(210,153,34,0.1); color: #fcd34d; }
+        td.yellow-cell { background: rgba(227,179,65,0.08); color: #fde68a; }
+        td.purple-cell { background: rgba(163,113,247,0.1); color: #c4b5fd; }
+        td.gray-cell { background: var(--surface3); color: var(--muted); }
+        td.bold-red { background: rgba(218,54,51,0.2); color: #fca5a5; font-weight: 700; }
+
+        .bullet-list { list-style: none; margin: 12px 0 16px; padding: 0; }
+        .bullet-list li {
+          padding: 7px 0 7px 0; padding-right: 24px; position: relative;
+          color: var(--text2); font-size: 14px; line-height: 1.7;
+          border-bottom: 1px solid var(--border);
+        }
+        .bullet-list li:last-child { border-bottom: none; }
+        .bullet-list li::before {
+          content: '›'; position: absolute; right: 4px; color: var(--blue);
+          font-size: 18px; line-height: 1.4; font-weight: 700;
+        }
+
+        .num-list { list-style: none; counter-reset: item; margin: 12px 0 16px; padding: 0; }
+        .num-list li {
+          counter-increment: item; padding: 10px 48px 10px 0; position: relative;
+          color: var(--text2); font-size: 14px; line-height: 1.7;
+          border-bottom: 1px solid var(--border);
+        }
+        .num-list li:last-child { border-bottom: none; }
+        .num-list li::before {
+          content: counter(item); position: absolute; right: 0; top: 10px;
+          width: 28px; height: 28px; background: var(--surface3);
+          border: 1px solid var(--border2); border-radius: 6px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 12px; font-weight: 800; color: var(--blue);
+        }
+
+        .steps { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin: 16px 0; }
+        .step { display: flex; gap: 16px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .step:last-child { border-bottom: none; }
+        .step-num {
+          width: 28px; height: 28px; background: var(--blue-dim); color: white;
+          border-radius: 6px; display: flex; align-items: center; justify-content: center;
+          font-size: 12px; font-weight: 800; flex-shrink: 0;
+        }
+        .step-body { font-size: 14px; color: var(--text2); line-height: 1.7; padding-top: 4px; }
+
+        .formula {
+          background: var(--surface); border: 2px solid var(--blue-dim); border-radius: 10px;
+          padding: 20px 28px; text-align: center; font-size: 17px; font-weight: 700;
+          color: var(--blue); margin: 20px 0; direction: ltr; letter-spacing: 0.02em;
+        }
+
+        .grade-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 16px 0; }
+        .grade-card {
+          background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+          padding: 16px 12px; text-align: center; transition: transform 0.2s, border-color 0.2s;
+        }
+        .grade-card:hover { transform: translateY(-3px); }
+        .grade-card.A { border-color: var(--green-border); }
+        .grade-card.B { border-color: #2563eb; }
+        .grade-card.C { border-color: var(--orange-border); }
+        .grade-card.D { border-color: #f97316; }
+        .grade-card.F { border-color: var(--red-border); }
+        .grade-letter { font-size: 32px; font-weight: 800; line-height: 1; margin-bottom: 6px; }
+        .grade-card.A .grade-letter { color: var(--green); }
+        .grade-card.B .grade-letter { color: var(--blue); }
+        .grade-card.C .grade-letter { color: var(--orange); }
+        .grade-card.D .grade-letter { color: #f97316; }
+        .grade-card.F .grade-letter { color: var(--red); }
+        .grade-range { font-size: 12px; color: var(--muted); }
+        .grade-desc { font-size: 11px; color: var(--text2); margin-top: 6px; line-height: 1.4; }
+
+        .tip-card {
+          background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+          padding: 20px 24px; margin: 14px 0; transition: border-color 0.2s;
+        }
+        .tip-card:hover { border-color: var(--blue-border); }
+        .tip-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .tip-tag { font-size: 12px; background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue); border-radius: 4px; padding: 2px 8px; font-weight: 600; }
+
+        .submit-box {
+          background: linear-gradient(135deg, var(--blue-bg) 0%, var(--surface) 100%);
+          border: 2px solid var(--blue-border); border-radius: 14px; padding: 28px 32px; margin-top: 24px;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+        #back-top {
+          position: fixed; bottom: 28px; left: 28px; width: 42px; height: 42px;
+          background: var(--blue-dim); color: white; border: none; border-radius: 10px;
+          cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;
+          opacity: 0; transition: opacity 0.3s, transform 0.2s; z-index: 100;
+        }
+        #back-top.visible { opacity: 1; }
+        #back-top:hover { transform: translateY(-2px); }
+
+        hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+        @media (max-width: 640px) {
+          .hero h1 { font-size: 26px; }
+          .toc-grid { grid-template-columns: 1fr; }
+          .grade-cards { grid-template-columns: repeat(3, 1fr); }
+          .cover-page { padding: 40px 24px 36px; }
+          .cover-uni-name { font-size: 20px; }
+          .cover-logo { width: 110px; height: 110px; }
+        }
+    </style>
+</head>
+<body>
+
+<button id="back-top" onclick="scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+    window.addEventListener('scroll', () => {
+      document.getElementById('back-top').classList.toggle('visible', scrollY > 300);
+    });
+</script>
+
+<!-- ══════════════════════════════════════
+     COVER PAGE
+══════════════════════════════════════ -->
+<div class="cover-page" id="cover">
+
+  <div class="cover-top">
+    <img class="cover-logo" src="img.png" alt="لوگو دانشگاه اصفهان"
+         onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';">
+    <div class="cover-logo-fallback" id="logo-fallback" style="display:none;">لوگو دانشگاه</div>
+
+    <div class="cover-uni-name">دانشگاه اصفهان</div>
+    <div class="cover-faculty">دانشکده مهندسی کامپیوتر</div>
+  </div>
+
+  <div class="cover-divider"></div>
+
+  <div class="cover-middle">
+    <div class="cover-course">مبانی و کاربردهای هوش مصنوعی</div>
+    <div class="cover-project">پروژه دوم (Drone MDP Challenge)</div>
+  </div>
+
+  <div class="cover-divider"></div>
+
+  <div class="cover-info-block">
+    <div class="cover-row">
+      <div class="cover-label"><span>استاد:</span> دکتر مرضیه حسینی</div>
+    </div>
+
+    <div class="cover-row">
+      <div class="cover-label"><span>دستیاران آموزشی:</span></div>
+      <div class="cover-name">مسیح روغنی</div>
+      <div class="cover-name">مرضیه کرمی</div>
+      <div class="cover-name">فاطمه صیادزاده</div>
+    </div>
+  </div>
+
+  <div class="cover-semester">نیم‌سال دوم ۱۴۰۴–۱۴۰۵</div>
+
+  <div class="scroll-hint" onclick="document.getElementById('main-content').scrollIntoView({behavior:'smooth'})">
+    <span>مشاهده مستندات</span>
+    <div class="scroll-arrow">↓</div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════ -->
+<div id="main-content">
+<div class="page-wrapper">
+
+    <!-- HERO -->
+    <div class="hero">
+        <span class="hero-badge">🎓 پروژه درس هوش مصنوعی</span>
+        <span class="hero-icon">🚁</span>
+        <h1>Drone MDP Challenge</h1>
+        <div class="hero-sub">مستندات کامل محیط، قوانین، و معیارهای ارزیابی</div>
+        <div class="hero-desc">پیاده‌سازی Value Iteration برای پرواز بهینه پهپاد در Grid World</div>
+    </div>
+
+    <!-- TOC -->
+    <div class="toc">
+        <div class="toc-title">📋 فهرست مطالب</div>
+        <div class="toc-grid">
+            <a href="#s1"><span class="toc-num">۱</span> معرفی پروژه</a>
+            <a href="#s7"><span class="toc-num">۷</span> شرایط پایان اپیزود</a>
+            <a href="#s2"><span class="toc-num">۲</span> ساختار محیط</a>
+            <a href="#s8"><span class="toc-num">۸</span> پارامترهای MDP</a>
+            <a href="#s3"><span class="toc-num">۳</span> اعمال و گذارها</a>
+            <a href="#s9"><span class="toc-num">۹</span> راهنمای API</a>
+            <a href="#s4"><span class="toc-num">۴</span> سیستم آسیب</a>
+            <a href="#s10"><span class="toc-num">۱۰</span> معیارهای ارزیابی</a>
+            <a href="#s5"><span class="toc-num">۵</span> ساختار پاداش</a>
+            <a href="#s11"><span class="toc-num">۱۱</span> نکات پیاده‌سازی</a>
+            <a href="#s6"><span class="toc-num">۶</span> قوانین مدکیت</a>
+            <a href="#s12"><span class="toc-num">۱۲</span> نحوه تحویل</a>
+        </div>
+    </div>
+
+    <!-- 1 -->
+    <div class="section" id="s1">
+        <div class="h1"><span class="h1-num">۱</span> معرفی پروژه</div>
+        <p>در این پروژه یک <strong>پهپاد (Drone)</strong> درون یک محیط شبکه‌ای (Grid World) پرواز می‌کند. وظیفه‌ی شما پیاده‌سازی تابع <code>compute_policy(api)</code> در فایل <code>policy.py</code> است که با استفاده از الگوریتم <strong>Value Iteration</strong> یک سیاست بهینه محاسبه و بازمی‌گرداند.</p>
+        <p>سیاست به ازای هر حالت مشخص می‌کند پهپاد باید به کدام جهت حرکت کند تا بیشترین پاداش تجمعی را کسب کند.</p>
+        <div class="callout blue">
+            <span class="callout-icon">ℹ️</span>
+            <div class="callout-body">محیط به‌صورت یک <strong>فرایند تصمیم‌گیری مارکوف (MDP)</strong> مدل شده است و برای حل آن باید معادله بلمن را پیاده‌سازی کنید.</div>
+        </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="section" id="s2">
+        <div class="h1"><span class="h1-num">۲</span> ساختار محیط</div>
+        <div class="h2">۲.۱ گرید و حالت‌ها</div>
+        <p>محیط یک <strong>شبکه‌ی مستطیلی تصادفی</strong> با ابعاد بین ۹×۹ تا ۱۵×۱۵ است که در هر اجرا به‌صورت رندوم تولید می‌شود.</p>
+        <p><strong>فضای حالت (State Space):</strong> هر حالت با یک سه‌تایی مشخص می‌شود:</p>
+        <ul class="bullet-list">
+            <li><code>(row, col, damage)</code> — سطر، ستون (هر دو از صفر شروع می‌شوند)، و سطح آسیب</li>
+            <li>مقدار <code>damage</code> از ۰ تا ۴ متغیر است (<code>damage=5</code> به معنی سقوط و پایان اپیزود است)</li>
+            <li>تعداد کل حالت‌ها: <code>rows × cols × 5</code> حالت (منهای خانه‌های مانع)</li>
+        </ul>
+        <div class="h2">۲.۲ انواع خانه‌ها</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>نوع خانه</th><th>آیکون</th><th>توضیح</th></tr></thead>
+                <tbody>
+                <tr><td>normal</td><td>—</td><td>خانه عادی — فقط هزینه قدم بر اساس damage</td></tr>
+                <tr><td class="gray-cell">obstacle</td><td>⬛</td><td>مانع — غیرقابل ورود؛ تلاش برای ورود = ضربه دیوار</td></tr>
+                <tr><td class="green-cell">goal</td><td>🎯</td><td>هدف — حالت پایانی؛ ورود به آن +۳۰۰ پاداش می‌دهد</td></tr>
+                <tr><td class="red-cell">storm (S1/S2/S3)</td><td>⛈</td><td>طوفان — جریمه + افزایش damage (سه سطح شدت)</td></tr>
+                <tr><td class="green-cell">medkit</td><td>🩹</td><td>جعبه کمک اول — +۲۵ پاداش، damage −۱، سپس برای همیشه حذف می‌شود</td></tr>
+                <tr><td class="purple-cell">portal_a / portal_b</td><td>🌀</td><td>پورتال — تله‌پورت به طرف دیگر جفت پورتال، جریمه −۵</td></tr>
+                <tr><td class="orange-cell">storm zone</td><td>🌪</td><td>منطقه طوفانی — جریمه تصادفی اضافه در هر قدم داخل منطقه</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="section" id="s3">
+        <div class="h1"><span class="h1-num">۳</span> اعمال و گذارهای احتمالاتی</div>
+        <div class="h2">۳.۱ اعمال ممکن</div>
+        <p>چهار عمل در اختیار دارید: <code>N</code> (شمال)، <code>S</code> (جنوب)، <code>E</code> (شرق)، <code>W</code> (غرب). در خانه هدف هیچ عملی ممکن نیست (حالت پایانی).</p>
+        <div class="h2">۳.۲ حرکت احتمالاتی — Stochastic Transitions</div>
+        <p>پهپاد <strong>دقیقاً در مسیر انتخاب‌شده حرکت نمی‌کند.</strong> باد و اختلال باعث انحراف می‌شود:</p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>نتیجه</th><th>احتمال</th><th>توضیح</th></tr></thead>
+                <tbody>
+                <tr><td>حرکت رو به جلو</td><td class="green-cell">fwd (مثلاً ۸۵٪)</td><td>پهپاد به جهت درخواست‌شده می‌رود</td></tr>
+                <tr><td>انحراف چپ</td><td class="orange-cell">left (مثلاً ۸٪)</td><td>پهپاد به جهت عمود چپ می‌رود</td></tr>
+                <tr><td>انحراف راست</td><td class="red-cell">right (مثلاً ۷٪)</td><td>پهپاد به جهت عمود راست می‌رود</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p><strong>مثال:</strong> اگر عمل <code>N</code> انتخاب شود، جهت‌های عمود آن <code>W</code> و <code>E</code> هستند.</p>
+        <ul class="bullet-list">
+            <li>احتمال <code>fwd</code>: پهپاد به شمال می‌رود</li>
+            <li>احتمال <code>left</code>: پهپاد به غرب می‌رود</li>
+            <li>احتمال <code>right</code>: پهپاد به شرق می‌رود</li>
+        </ul>
+        <div class="callout orange">
+            <span class="callout-icon">⚠️</span>
+            <div class="callout-body"><strong>برخورد با دیوار/مانع:</strong> اگر حرکت به بیرون گرید یا داخل مانع منجر شود، پهپاد در همان خانه می‌ماند و <strong>−۳ جریمه اضافه</strong> می‌گیرد.</div>
+        </div>
+        <div class="h2">۳.۳ رزولوشن پورتال</div>
+        <p>اگر پهپاد وارد یک خانه پورتال شود، بلافاصله به خانه طرف دیگر جفت پورتال تله‌پورت می‌شود. این اتفاق <strong>قبل از محاسبه پاداش</strong> رخ می‌دهد.</p>
+    </div>
+
+    <!-- 4 -->
+    <div class="section" id="s4">
+        <div class="h1"><span class="h1-num">۴</span> سیستم آسیب (Damage System)</div>
+        <div class="h2">۴.۱ سطوح آسیب و هزینه قدم</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>سطح آسیب</th><th>damage</th><th>هزینه هر قدم</th><th>وضعیت</th></tr></thead>
+                <tbody>
+                <tr><td class="green-cell">سالم</td><td>0</td><td>−۱ / قدم</td><td>🟢 مناسب برای سفرهای طولانی</td></tr>
+                <tr><td>آسیب خفیف</td><td>1</td><td>−۲ / قدم</td><td>🟡 قابل‌قبول</td></tr>
+                <tr><td class="orange-cell">آسیب متوسط</td><td>2</td><td>−۵ / قدم</td><td>🟠 هزینه قابل توجه</td></tr>
+                <tr><td class="red-cell">آسیب شدید</td><td>3</td><td>−۹ / قدم</td><td>🔴 هر قدم بسیار گران است</td></tr>
+                <tr><td class="red-cell">بحرانی</td><td>4</td><td>−۱۵ / قدم</td><td>💀 خطر سقوط — به medkit برسید!</td></tr>
+                <tr><td class="bold-red">سقوط</td><td class="bold-red">5</td><td class="bold-red">CRASH!</td><td class="bold-red">💥 اپیزود بلافاصله تمام می‌شود — جریمه ۲۰۰</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="h2">۴.۲ تأثیر خانه‌های مختلف بر Damage</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>خانه</th><th>تغییر damage</th><th>پاداش مستقیم</th><th>نکته مهم</th></tr></thead>
+                <tbody>
+                <tr><td class="red-cell">طوفان S1 ⛈</td><td>damage +1</td><td>−۵۰</td><td>—</td></tr>
+                <tr><td class="red-cell">طوفان S2 ⛈⛈</td><td>damage +1</td><td>−۱۰۰</td><td>—</td></tr>
+                <tr><td class="bold-red">طوفان S3 ⛈⛈⛈</td><td>damage +2</td><td>−۱۲۵</td><td>بسیار خطرناک!</td></tr>
+                <tr><td class="green-cell">Medkit 🩹</td><td>damage −1 (حداقل ۰)</td><td>+۲۵</td><td>فقط یک بار؛ بعد ناپدید</td></tr>
+                <tr><td class="purple-cell">پورتال 🌀</td><td>بدون تغییر</td><td>−۵</td><td>تله‌پورت می‌شود</td></tr>
+                <tr><td class="green-cell">هدف 🎯</td><td>—</td><td>+۳۰۰</td><td>پایان اپیزود</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="section" id="s5">
+        <div class="h1"><span class="h1-num">۵</span> ساختار پاداش (Reward)</div>
+        <div class="h2">۵.۱ قانون کلی پاداش هر قدم</div>
+        <ol class="num-list">
+            <li><strong>پاداش اصلی خانه مقصد:</strong> بر اساس نوع خانه‌ای که پهپاد در آن فرود می‌آید</li>
+            <li><strong>جریمه دیوار:</strong> <code>−۳</code> اضافه در صورت تلاش برای ورود به مانع/خارج گرید</li>
+            <li><strong>جریمه منطقه طوفانی:</strong> مقدار تصادفی بین <code>eMin</code> تا <code>eMax</code> (انتظار: <code>eExpected = (eMin+eMax)/2</code>)</li>
+        </ol>
+        <div class="h2">۵.۲ جدول کامل پاداش‌ها</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>رویداد</th><th>پاداش</th><th>اثر بر Damage</th><th>توضیح</th></tr></thead>
+                <tbody>
+                <tr><td class="green-cell">🎯 رسیدن به هدف</td><td class="green-cell">+۳۰۰</td><td>—</td><td>پایان اپیزود با موفقیت</td></tr>
+                <tr><td class="green-cell">🩹 مدکیت (تازه)</td><td class="green-cell">+۲۵</td><td>−۱ (min=0)</td><td>برای همیشه حذف می‌شود</td></tr>
+                <tr><td class="red-cell">⛈ طوفان S1</td><td class="red-cell">−۵۰</td><td>+۱</td><td>—</td></tr>
+                <tr><td class="red-cell">⛈ طوفان S2</td><td class="red-cell">−۱۰۰</td><td>+۱</td><td>—</td></tr>
+                <tr><td class="bold-red">⛈ طوفان S3</td><td class="bold-red">−۱۲۵</td><td>+۲</td><td>خطرناک‌ترین!</td></tr>
+                <tr><td class="purple-cell">🌀 پورتال</td><td>−۵</td><td>بدون تغییر</td><td>+ تله‌پورت فوری</td></tr>
+                <tr><td class="gray-cell">⬛ برخورد دیوار</td><td>−۳ اضافه</td><td>بدون تغییر</td><td>همراه با هزینه قدم</td></tr>
+                <tr><td class="orange-cell">🌪 داخل Storm Zone</td><td>−rand(eMin..eMax)</td><td>بدون تغییر</td><td>اضافه بر سایر پاداش‌ها</td></tr>
+                <tr><td>خانه عادی</td><td>−DMG_COST[damage]</td><td>بدون تغییر</td><td>هزینه بر اساس سطح آسیب</td></tr>
+                <tr><td class="bold-red">💥 سقوط (damage≥5)</td><td class="bold-red">−۲۰۰</td><td class="bold-red">→ پایان اپیزود</td><td>اپیزود فوری تمام می‌شود</td></tr>
+                <tr><td class="red-cell">⛔ امتیاز ≤ −۴۰۰</td><td class="red-cell">پایان اپیزود</td><td>—</td><td>بدون جریمه اضافه</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="section" id="s6">
+        <div class="h1"><span class="h1-num">۶</span> قوانین مدکیت — مصرف و ناپدید شدن</div>
+        <ul class="bullet-list">
+            <li><strong>لحظه مصرف:</strong> به محض اینکه پهپاد وارد خانه مدکیت شود، آن خانه <strong>فوراً</strong> به یک خانه عادی (normal) تبدیل می‌شود</li>
+            <li><strong>پس از مصرف:</strong> هیچ API‌ای آن خانه را دیگر به‌عنوان مدکیت نمی‌شناسد</li>
+            <li><strong>اثر در اپیزودهای بعدی:</strong> اگر در اپیزود ۱ مدکیتی مصرف شود، در اپیزودهای ۲ تا ۵ همچنان غایب است</li>
+            <li><strong>بازیابی:</strong> تنها با تولید نقشه جدید (دکمه New Map) مدکیت‌ها برمی‌گردند</li>
+        </ul>
+        <div class="callout orange">
+            <span class="callout-icon">💡</span>
+            <div class="callout-body"><strong>نکته برای policy.py:</strong> Policy شما بر اساس نقشه اولیه محاسبه می‌شود. در طول اجرا مدکیت‌ها ناپدید می‌شوند — این یکی از <strong>چالش‌های طراحی</strong> است.</div>
+        </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="section" id="s7">
+        <div class="h1"><span class="h1-num">۷</span> شرایط پایان اپیزود</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>شرط پایان</th><th>نتیجه</th><th>اثر بر امتیاز</th></tr></thead>
+                <tbody>
+                <tr><td class="green-cell">🎯 رسیدن به هدف</td><td class="green-cell"><strong>WIN</strong></td><td>+۳۰۰ (قبلاً محاسبه شده)</td></tr>
+                <tr><td class="bold-red">💥 damage ≥ 5 (سقوط)</td><td class="bold-red"><strong>CRASH</strong></td><td>−۲۰۰ جریمه فوری</td></tr>
+                <tr><td class="orange-cell">⛔ score ≤ −۴۰۰</td><td class="orange-cell"><strong>LOSS</strong></td><td>بدون جریمه اضافه</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="callout blue">
+            <span class="callout-icon">ℹ️</span>
+            <div class="callout-body">محدودیت تعداد قدم وجود ندارد. اما چون هزینه قدم همیشه منفی است، رسیدن به −۴۰۰ اجتناب‌ناپذیر خواهد بود مگر اینکه سریع‌تر به هدف برسید.</div>
+        </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="section" id="s8">
+        <div class="h1"><span class="h1-num">۸</span> پارامترهای MDP</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>پارامتر</th><th>API</th><th>محدوده / مقادیر</th></tr></thead>
+                <tbody>
+                <tr><td>احتمال جلو (fwd)</td><td><code>api.get_env_params()['fwd']</code></td><td>۰.۷۵ تا ۰.۹۳</td></tr>
+                <tr><td>احتمال چپ (left)</td><td><code>api.get_env_params()['left']</code></td><td>می‌تواند با right نامتقارن باشد</td></tr>
+                <tr><td>احتمال راست (right)</td><td><code>api.get_env_params()['right']</code></td><td>fwd + left + right = 1.0</td></tr>
+                <tr><td>ضریب تخفیف (γ)</td><td><code>api.get_env_params()['gamma']</code></td><td>۰.۸۰ تا ۰.۹۹</td></tr>
+                <tr><td>پارامترهای zone</td><td><code>api.get_storm_zone()</code></td><td>eMin, eMax, eExpected — یا None</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="callout blue">
+            <span class="callout-icon">📐</span>
+            <div class="callout-body">در محاسبه Q(s,a) باید از <code>fwd</code>, <code>left</code>, <code>right</code> که از <code>api.get_env_params()</code> می‌گیرید استفاده کنید. برای storm zone از <code>eExpected</code> به‌عنوان تقریب استفاده کنید.</div>
+        </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="section" id="s9">
+        <div class="h1"><span class="h1-num">۹</span> راهنمای API — توابع قابل استفاده</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>تابع</th><th>خروجی</th><th>کاربرد</th></tr></thead>
+                <tbody>
+                <tr><td><code>api.get_all_states()</code></td><td><code>list[tuple]</code></td><td>همه حالت‌های ممکن (row, col, damage)</td></tr>
+                <tr><td><code>api.get_possible_actions(state)</code></td><td><code>list[str]</code></td><td>اعمال ممکن — خالی برای حالت هدف</td></tr>
+                <tr><td><code>api.get_transitions(state, action)</code></td><td><code>list[tuple]</code></td><td>لیست (next_state, prob)</td></tr>
+                <tr><td><code>api.get_reward(state, action, next_state)</code></td><td><code>float</code></td><td>پاداش گذار (شامل zone با eExpected)</td></tr>
+                <tr><td><code>api.is_terminal(state)</code></td><td><code>bool</code></td><td>True فقط برای خانه هدف</td></tr>
+                <tr><td><code>api.get_env_params()</code></td><td><code>dict</code></td><td>fwd, left, right, gamma, rows, cols, portals</td></tr>
+                <tr><td><code>api.get_storm_zone()</code></td><td><code>dict | None</code></td><td>مشخصات zone: r1,c1,r2,c2,eMin,eMax,eExpected</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="h2">۹.۱ ساختار Value Iteration — الگوی پیشنهادی</div>
+        <div class="steps">
+            <div class="step"><div class="step-num">۱</div><div class="step-body">پارامترها را از <code>api.get_env_params()</code> بخوانید (gamma, fwd, left, right)</div></div>
+            <div class="step"><div class="step-num">۲</div><div class="step-body">همه حالت‌ها را با <code>api.get_all_states()</code> بگیرید</div></div>
+            <div class="step"><div class="step-num">۳</div><div class="step-body"><code>V(s) = 0</code> برای همه حالت‌ها مقداردهی اولیه کنید</div></div>
+            <div class="step"><div class="step-num">۴</div><div class="step-body">حلقه Value Iteration تا همگرایی: <code>Q(s,a) = Σ prob × (R(s,a,s') + γ·V(s'))</code> → <code>V(s) = max_a Q(s,a)</code></div></div>
+            <div class="step"><div class="step-num">۵</div><div class="step-body">Policy استخراج: برای هر <code>s</code>، عملی که <code>Q(s,a)</code> را بیشینه می‌کند</div></div>
+            <div class="step"><div class="step-num">۶</div><div class="step-body">dict با کلید <code>(row, col, damage)</code> و مقدار عمل <code>'N'/'S'/'E'/'W'</code> برگردانید</div></div>
+        </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="section" id="s10">
+        <div class="h1"><span class="h1-num">۱۰</span> معیارهای ارزیابی</div>
+        <p>اجرا شامل <strong>۵ اپیزود مستقل</strong> است. هر اپیزود از نقطه شروع ثابت با <code>damage=0</code> آغاز می‌شود.</p>
+
+        <div class="h2">۱۰.۱ معیار A — نرخ رسیدن به هدف (Goal Rate) — وزن: ۴۰٪</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>نرخ هدف</th><th>امتیاز A</th><th>توضیح</th></tr></thead>
+                <tbody>
+                <tr><td class="green-cell">۵/۵ = ۱۰۰٪</td><td class="green-cell">۱۰۰</td><td>کامل‌ترین عملکرد</td></tr>
+                <tr><td>۴/۵ = ۸۰٪</td><td>۸۵</td><td>عالی</td></tr>
+                <tr><td class="orange-cell">۳/۵ = ۶۰٪</td><td>۶۵</td><td>قابل‌قبول</td></tr>
+                <tr><td class="red-cell">۲/۵ = ۴۰٪</td><td>۴۰</td><td>ضعیف</td></tr>
+                <tr><td class="bold-red">۱/۵ یا ۰/۵</td><td class="bold-red">۱۵ یا ۰</td><td>بسیار ضعیف</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="h2">۱۰.۲ معیار B — امتیاز کل پنج اپیزود (Total Score) — وزن: ۳۰٪</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>بازه امتیاز کل</th><th>امتیاز B</th><th>تفسیر</th></tr></thead>
+                <tbody>
+                <tr><td class="green-cell">۱۰۰۰ ≥</td><td class="green-cell">۱۰۰</td><td>فوق‌العاده</td></tr>
+                <tr><td>۶۰۰ تا ۹۹۹</td><td>۸۰</td><td>خوب</td></tr>
+                <tr><td class="orange-cell">۲۰۰ تا ۵۹۹</td><td>۶۰</td><td>متوسط</td></tr>
+                <tr><td class="red-cell">−۱۹۹ تا ۱۹۹</td><td>۳۵</td><td>ضعیف</td></tr>
+                <tr><td class="bold-red">-۲۰۰ <</td><td class="bold-red">۱۰</td><td>بسیار ضعیف</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="h2">۱۰.۳ معیار C — نرخ بی‌سقوط (Zero-Crash Bonus) — وزن: ۱۵٪</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>تعداد سقوط</th><th>امتیاز C</th><th>توضیح</th></tr></thead>
+                <tbody>
+                <tr><td class="green-cell">۰ سقوط</td><td class="green-cell">۱۰۰</td><td>کاملاً ایمن</td></tr>
+                <tr><td class="orange-cell">۱ سقوط</td><td>۵۵</td><td>بیشتر ایمن</td></tr>
+                <tr><td class="red-cell">۲ سقوط</td><td>۲۵</td><td>مشکل در مدیریت damage</td></tr>
+                <tr><td class="bold-red">۳+ سقوط</td><td class="bold-red">۰</td><td>damage جدی گرفته نشده</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="h2">۱۰.۴ معیار D — پوشش Policy — وزن: ۱۵٪</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>پوشش</th><th>امتیاز D</th><th>توضیح</th></tr></thead>
+                <tbody>
+                <tr><td class="green-cell">۱۰۰٪</td><td class="green-cell">۱۰۰</td><td>کامل</td></tr>
+                <tr><td>۹۰٪ – ۹۹٪</td><td>۸۰</td><td>خوب</td></tr>
+                <tr><td class="orange-cell">۷۵٪ – ۸۹٪</td><td>۵۵</td><td>متوسط</td></tr>
+                <tr><td class="bold-red">۷۵٪ <</td><td class="bold-red">۲۰</td><td>Policy ناقص</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="h2">۱۰.۵ فرمول نمره نهایی</div>
+        <div class="formula">Score = 0.40 × A + 0.30 × B + 0.15 × C + 0.15 × D</div>
+
+        <div class="grade-cards">
+            <div class="grade-card A"><div class="grade-letter">A</div><div class="grade-range">۹۰–۱۰۰</div><div class="grade-desc">Policy بهینه، بدون سقوط</div></div>
+            <div class="grade-card B"><div class="grade-letter">B</div><div class="grade-range">۷۵–۸۹</div><div class="grade-desc">عملکرد خوب</div></div>
+            <div class="grade-card C"><div class="grade-letter">C</div><div class="grade-range">۵۵–۷۴</div><div class="grade-desc">بعضی اپیزودها موفق</div></div>
+            <div class="grade-card D"><div class="grade-letter">D</div><div class="grade-range">۳۵–۵۴</div><div class="grade-desc">نیاز به بازنگری</div></div>
+            <div class="grade-card F"><div class="grade-letter">F</div><div class="grade-range">< ۳۵</div><div class="grade-desc">بازنویسی لازم</div></div>
+        </div>
+    </div>
+
+    <!-- 11 -->
+    <div class="section" id="s11">
+        <div class="h1"><span class="h1-num">۱۱</span> نکات کلیدی برای پیاده‌سازی بهتر</div>
+        <div class="tip-card">
+            <div class="tip-title"><span>⛈</span> storm zone را جدی بگیرید <span class="tip-tag">الف</span></div>
+            <p>هزینه هر قدم داخل zone علاوه بر هزینه عادی کسر می‌شود. از <code>eExpected = (eMin+eMax)/2</code> در <code>api.get_storm_zone()</code> استفاده کنید.</p>
+        </div>
+        <div class="tip-card">
+            <div class="tip-title"><span>🩹</span> damage را مدیریت کنید <span class="tip-tag">ب</span></div>
+            <p>یک پهپاد با <code>damage=4</code> در هر قدم <strong>۱۵ امتیاز</strong> از دست می‌دهد! اگر medkit در مسیر است، ارزش استفاده از آن را محاسبه کنید.</p>
+        </div>
+        <div class="tip-card">
+            <div class="tip-title"><span>⚙️</span> THETA و MAX_ITER را تنظیم کنید <span class="tip-tag">ج</span></div>
+            <p><code>THETA=1e-5</code> با <code>MAX_ITER=1000</code> برای اکثر نقشه‌ها کافی است.</p>
+        </div>
+        <div class="tip-card">
+            <div class="tip-title"><span>🎲</span> احتمالات left و right نامتقارن هستند <span class="tip-tag">د</span></div>
+            <p>حتماً هر دو را از <code>api.get_env_params()</code> بخوانید — نه فرض تقارن.</p>
+        </div>
+        <div class="tip-card">
+            <div class="tip-title"><span>🌀</span> پورتال‌ها می‌توانند مفید باشند <span class="tip-tag">ه</span></div>
+            <p>جریمه −۵ ممکن است در مقابل مسیر کوتاه‌تر به هدف ارزش داشته باشد. Value Iteration این مبادله را خودکار محاسبه می‌کند.</p>
+        </div>
+    </div>
+
+    <!-- 12 -->
+    <div class="section" id="s12">
+        <div class="h1"><span class="h1-num">۱۲</span> نحوه تحویل و اجرا</div>
+        <ol class="num-list">
+            <li><strong>سرور را اجرا کنید:</strong> <code>python server.py</code> (نیاز: flask, flask-cors)</li>
+            <li><strong>policy.py را ویرایش کنید:</strong> تابع <code>compute_policy(api)</code> را پیاده‌سازی کنید</li>
+            <li><strong>رابط HTML را باز کنید:</strong> فایل <code>drone_mdp_v2.html</code> را در مرورگر باز کنید</li>
+            <li><strong>دکمه Run را بزنید:</strong> Policy محاسبه شده و ۵ اپیزود به‌صورت زنده اجرا می‌شود</li>
+        </ol>
+
+        <!-- ── VISUALIZATIONS ── -->
+        <div class="h2">۱۲.۱ نمودارهای اجباری</div>
+        <p>علاوه بر <code>policy.py</code>، باید یک فایل <code>visualize.py</code> تحویل دهید که <strong>سه نمودار</strong> زیر را رسم می‌کند. کتابخانه‌های <code>matplotlib</code> و <code>numpy</code> مجاز هستند.</p>
+
+        <!-- VIZ 1 -->
+        <div class="tip-card" style="margin-top:20px; border-color: var(--blue-border);">
+            <div class="tip-title">
+                <span>🌡️</span> نمودار ۱ — نقشه ارزش روی گرید (Value Heatmap)
+                <span class="tip-tag" style="background:var(--blue-bg); color:var(--blue);">اجباری</span>
+            </div>
+            <p>این نمودار مقدار <code>V(s)</code> را برای هر خانه گرید به‌صورت رنگ نشان می‌دهد. خانه‌های با ارزش بالاتر (نزدیک‌تر به هدف) روشن‌تر/گرم‌تر رنگ می‌شوند. به ازای هر سطح damage یک subplot جداگانه رسم کنید.</p>
+            <p style="margin-top:10px; font-size:13px; color:var(--muted);">
+                💡 <strong style="color:var(--text2);">تفسیر:</strong> خانه هدف باید بالاترین ارزش را داشته باشد. مناطق طوفانی و موانع باید ارزش پایین‌تری نسبت به اطرافشان نشان دهند.
+            </p>
+        </div>
+
+        <!-- VIZ 2 -->
+        <div class="tip-card" style="border-color: var(--orange-border);">
+            <div class="tip-title">
+                <span>📈</span> نمودار ۲ — نمودار همگرایی (Convergence Plot)
+                <span class="tip-tag" style="background:var(--orange-bg); color:var(--orange); border-color:var(--orange-border);">اجباری</span>
+            </div>
+            <p>این نمودار نشان می‌دهد در طول حلقه Value Iteration، بیشینه تغییر <code>max|V_new(s) − V_old(s)|</code> در هر ایتریشن چقدر کاهش یافته است. همگرایی صحیح باید منحنی نزولی تا زیر <code>THETA</code> نشان دهد.</p>
+            <p style="margin-top:10px; font-size:13px; color:var(--muted);">
+                💡 <strong style="color:var(--text2);">تفسیر:</strong> محور Y باید لگاریتمی باشد. اگر منحنی به جای کاهش پیوسته نوسان داشت، احتمالاً در محاسبه reward یا transition مشکل دارید.
+            </p>
+        </div>
+
+        <!-- VIZ 3 -->
+        <div class="tip-card" style="border-color: var(--green-border);">
+            <div class="tip-title">
+                <span>🗺️</span> نمودار ۳ — نقشه سیاست روی گرید (Policy Map)
+                <span class="tip-tag" style="background:var(--green-bg); color:var(--green); border-color:var(--green-border);">اجباری</span>
+            </div>
+            <p>این نمودار برای هر خانه گرید یک فلش نشان می‌دهد که جهت بهینه policy را مشخص می‌کند. به ازای هر سطح damage یک subplot جداگانه رسم کنید. خانه‌های مانع و هدف با رنگ متمایز مشخص شوند.</p>
+            <p style="margin-top:10px; font-size:13px; color:var(--muted);">
+                💡 <strong style="color:var(--text2);">تفسیر:</strong> فلش‌ها باید به‌صورت منسجم به سمت هدف هدایت شوند. اگر فلش‌ها دایره‌ای یا تصادفی بودند، value iteration همگرا نشده است.
+            </p>
+        </div>
+
+        <!-- SUMMARY TABLE -->
+        <div class="h2">۱۲.۲ خلاصه فایل‌های خروجی نمودارها</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>نمودار</th><th>نام فایل</th><th>محور X</th><th>محور Y</th><th>رنگ‌بندی پیشنهادی</th></tr></thead>
+                <tbody>
+                <tr>
+                    <td class="blue-cell" style="background:var(--blue-bg); color:var(--blue);">🌡️ Value Heatmap</td>
+                    <td><code>value_heatmap.png</code></td>
+                    <td>ستون (col)</td>
+                    <td>سطر (row)</td>
+                    <td><code>cmap='RdYlGn'</code></td>
+                </tr>
+                <tr>
+                    <td class="orange-cell">📈 Convergence</td>
+                    <td><code>convergence.png</code></td>
+                    <td>شماره ایتریشن</td>
+                    <td>max ΔV (log)</td>
+                    <td>خط آبی + خط قرمز θ</td>
+                </tr>
+                <tr>
+                    <td class="green-cell">🗺️ Policy Map</td>
+                    <td><code>policy_map.png</code></td>
+                    <td>ستون (col)</td>
+                    <td>سطر (row)</td>
+                    <td>فلش آبی، مانع تیره، هدف سبز</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SUBMIT BOX -->
+        <div class="submit-box">
+            <div class="h2" style="margin-top:0">📦 فایل‌های تحویلی</div>
+
+            <div class="callout orange" style="margin-bottom:18px">
+                <span class="callout-icon">⏰</span>
+                <div class="callout-body">
+                    <strong>مهلت تحویل:</strong> از زمان آپلود پروژه، <strong>۱۰ روز</strong> فرصت دارید. پس از این مهلت تحویل پذیرفته نمی‌شود.
+                </div>
+            </div>
+
+            <div class="callout blue" style="margin-bottom:18px">
+                <span class="callout-icon">👥</span>
+                <div class="callout-body">
+                    این پروژه <strong>گروهی (دو نفره)</strong> است. نام هر دو نفر گروه باید در فایل گزارش فنی (.docx) به‌وضوح ذکر شود.
+                </div>
+            </div>
+
+            <div class="table-wrap" style="margin-top:16px">
+                <table>
+                    <thead><tr><th>فایل</th><th>ملاحظه</th><th>توضیح</th></tr></thead>
+                    <tbody>
+                    <tr>
+                        <td class="green-cell"><code>policy.py</code></td>
+                        <td>اجباری</td>
+                        <td>شامل <code>compute_policy(api)</code> — خروجی dict با کلید <code>(r,c,d)</code> و مقدار <code>'N'|'S'|'E'|'W'</code></td>
+                    </tr>
+                    <tr>
+                        <td class="blue-cell" style="background:var(--blue-bg); color:var(--blue);"><code>visualize.py</code></td>
+                        <td>اجباری</td>
+                        <td>سه نمودار را تولید و ذخیره می‌کند: <code>value_heatmap.png</code>، <code>convergence.png</code>، <code>policy_map.png</code></td>
+                    </tr>
+                    <tr>
+                        <td class="orange-cell">تصاویر خروجی</td>
+                        <td>اجباری</td>
+                        <td>سه فایل <code>.png</code> حاصل از اجرای <code>visualize.py</code></td>
+                    </tr>
+                    <tr>
+                        <td class="bold-red">گزارش فنی (.docx)</td>
+                        <td>اجباری</td>
+                        <td>گزارش مکتوب پیاده‌سازی، تحلیل نمودارها، و نتایج. <strong>نام هر دو نفر گروه</strong> باید در ابتدای سند ذکر شود.</td>
+                    </tr>
+                    <tr>
+                        <td class="gray-cell">کتابخانه‌های مجاز</td>
+                        <td>—</td>
+                        <td>Python استاندارد + <code>matplotlib</code> + <code>numpy</code> (فقط برای نمودارها)</td>
+                    </tr>
+                    <tr>
+                        <td class="gray-cell">زمان محاسبه</td>
+                        <td>—</td>
+                        <td><code>compute_policy</code> باید در کمتر از ۶۰ ثانیه تمام شود</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout red" style="margin-top:18px">
+            <div class="callout red" style="margin-top:18px">
+                <span class="callout-icon">⚠️</span>
+                <div class="callout-body">
+                    <strong>توجه:</strong> تحویل ناقص (بدون گزارش فنی یا بدون نمودارها) به‌عنوان پروژه ناتمام ثبت می‌شود. سرور و HTML دست نخورده باقی بمانند.
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+
+</body>
+</html>

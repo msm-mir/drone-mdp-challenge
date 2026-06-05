@@ -45,10 +45,11 @@ def compute_policy(api):
 
     for iteration in range(MAX_ITER):
         delta = 0.0
+        V_new = V.copy()
 
         for s in states:
             if api.is_terminal(s):
-                V[s] = 0.0
+                V_new[s] = 0.0
                 continue
 
             actions = api.get_possible_actions(s)
@@ -64,8 +65,10 @@ def compute_policy(api):
                 if q > best_val:
                     best_val = q
 
-            delta = max(delta, abs(best_val - V[s]))
-            V[s] = best_val
+            delta = max(delta, abs(best_val - V_new[s]))
+            V_new[s] = best_val
+
+        V = V_new.copy()
 
         if delta < THETA:
             print(f"[policy.py] Converged in {iteration + 1} iterations (delta={delta:.2e})")

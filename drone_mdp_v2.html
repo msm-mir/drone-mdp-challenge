@@ -773,6 +773,39 @@
         const epCell=document.getElementById(`epcell-${ep}`);
         if(epCell) epCell.className='ep-cell active';
 
+        // ── Re-sync server & recompute policy for ep > 1 ─────────
+        // (ep 1 already has a fresh policy from above)
+        if(ep > 1){
+          document.getElementById('btn-run').innerHTML=`<span class="spin">⟳</span> Ep${ep}: Re-syncing map...`;
+          logMsg(`Ep${ep}: medkits changed — re-syncing map & recomputing policy...`,'warn');
+          try{
+            await apiFetch('/api/init',{
+              rows:ROWS, cols:COLS, grid:gridData,
+              stormSev:stormSev, stormZone:stormZoneData,
+              portalPairs:portalPairs, startPos:startPos,
+              fwd:ENV_FWD, left:ENV_LEFT, right:ENV_RIGHT, gamma:UI_GAMMA
+            });
+          } catch(e){
+            showError(`Ep${ep}: Cannot re-sync map: ${e.message}`);
+            serverOnline=false; await checkServer(); resetRunBtn(); return;
+          }
+          document.getElementById('btn-run').innerHTML=`<span class="spin">⟳</span> Ep${ep}: Recomputing policy...`;
+          try{
+            const result=await apiFetch('/api/compute_policy',{});
+            if(!result.ok) throw new Error(result.error||'unknown error');
+            policy=result.policy;
+            policyMap=policy;
+          } catch(e){
+            showError(`Ep${ep} policy error:\n${e.message}`);
+            resetRunBtn(); return;
+          }
+          renderGrid();
+          const mkRemaining=gridData.flat().filter(v=>v==='medkit').length;
+          logMsg(`Ep${ep}: Policy updated · ${mkRemaining} medkits remaining`,'ok');
+          document.getElementById('btn-run').innerHTML=`<span class="spin">⟳</span> Flying ep${ep}...`;
+        }
+        // ─────────────────────────────────────────────────────────
+
         droneState={row:startPos.row,col:startPos.col,damage:0};
         trailSet=new Set();
         let epReward=0, steps=0, outcome='loss', epMaxReward=-Infinity;

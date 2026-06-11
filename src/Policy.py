@@ -1,7 +1,15 @@
 class MDP_class:
     def __init__(self, api):
         self.server_api = api
+        
         self.medkits = []
+        self.init_medkits()
+
+    def init_medkits(self):
+        for r in range(self.server_api._rows):
+            for c in range(self.server_api._cols):
+                if self.server_api._cell(r, c) == 'medkit':
+                    self.medkits.append((r, c))
 
 def compute_policy(api):
     params = api.get_env_params()

@@ -139,6 +139,7 @@ def compute_policy(api):
 
     THETA = 1e-4
     MAX_ITER = 500
+    for_plotting = False
 
     states = my_api.get_all_states()
 
@@ -153,6 +154,8 @@ def compute_policy(api):
     
     # value iteration
     for type in value_history.keys():
+        if (not for_plotting) and (type != 'total'): continue
+
         for iteration in range(MAX_ITER):
             delta = 0.0
             V_new = value_history[type].copy()
@@ -193,6 +196,8 @@ def compute_policy(api):
     
     # compute policy
     for type in value_history.keys():
+        if (not for_plotting) and (type != 'total'): continue
+        
         for s in states:
             r, c, dmg, mask = s
             if mask != 0:

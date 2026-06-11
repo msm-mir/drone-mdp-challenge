@@ -141,6 +141,9 @@ def compute_policy(api):
     MAX_ITER = 500
 
     states = my_api.get_all_states()
+
+    delta_history = { 'base': [], 'total': [], 'goal': [], 'medkit': [], 'portal': [], #11
+                      'obstacle': [], 'storm': [], 'storm_zone': [] }
     value_history = { 'base': {}, 'total': {}, 'goal': {}, 'medkit': {}, 'portal': {}, 
                       'obstacle': {}, 'storm': {}, 'storm_zone': {} }
     
@@ -177,6 +180,7 @@ def compute_policy(api):
                 V_new[s] = best_val
 
             value_history[type] = V_new
+            delta_history[type].append(delta)
             
             if delta < THETA:
                 print(f"[policy.py] Converged in {iteration + 1} iterations (delta={delta:.2e})")

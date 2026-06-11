@@ -121,6 +121,10 @@ class MDP_class:
     def is_terminal(self, state):
         r, c, dmg, mask = state
         return self.api.is_terminal((r, c, dmg)) or dmg == 5
+    
+    def get_possible_actions(self, state):
+        r, c, dmg, mask = state
+        return self.api.get_possible_actions((r, c, dmg))
 
 def compute_policy(api):
     params = api.get_env_params()

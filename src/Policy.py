@@ -110,6 +110,13 @@ class MDP_class:
             tmp_reward = 0
             # base reward of portal + our reward of portal
             reward['portal'] = -5 + tmp_reward - self.api.DMG_COST[dmg]
+        
+        if t == 'goal':
+            tmp_reward = 300
+            # base reward of goal + our reward of goal
+            reward['goal'] = tmp_reward
+
+        return reward
 
 def compute_policy(api):
     params = api.get_env_params()

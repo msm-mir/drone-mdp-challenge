@@ -148,8 +148,7 @@ def compute_policy(api):
     for k in value_history.keys():
         value_history[k] = {s: 0.0 for s in states}
     
-    policy = {}
-
+    # value iteration
     for type in value_history.keys():
         for iteration in range(MAX_ITER):
             delta = 0.0
@@ -185,25 +184,37 @@ def compute_policy(api):
         else:
             print(f"[policy.py] Reached MAX_ITER={MAX_ITER} (delta={delta:.2e})")
 
-    for s in states:
-        if my_api.is_terminal(s):
-            continue
+    policy = { 'base': {}, 'total': {}, 'goal': {}, 'medkit': {}, 'portal': {}, 
+                      'obstacle': {}, 'storm': {}, 'storm_zone': {} }
+    
+    # compute policy
+    for type in value_history.keys():
+        for s in states:
+            r, c, dmg, mask = s
+            if mask != 0:
+                continue
 
-        actions = my_api.get_possible_actions(s)
-        if not actions:
-            continue
+            if my_api.is_terminal(s):
+                continue
 
-        best_action, best_q = None, float('-inf')
-        for a in actions:
-            q = sum(
-                prob * (my_api.get_reward(s, a, ns) + gamma * V.get(ns, 0.0))
-                for ns, prob in my_api.get_transitions(s, a)
-            )
-            if q > best_q:
-                best_q, best_action = q, a
+            actions = my_api.get_possible_actions(s)
+            if not actions:
+                continue
 
-        if best_action:
-            policy[s] = best_action
+            best_action, best_q = None, float('-inf')
+            for a in actions:
+                q = 0
+                for ns, prob in my_api.get_transitions(s, a):
+                    reward = my_api.get_reward(s, a, ns)
+
+                    q += prob * (reward[type] + gamma * value_history[type].get(ns, 0.0))
+                
+                if q > best_q:
+                    best_q, best_action = q, a
+
+            if best_action:
+                policy[type][(r, c, dmg)] = best_action
+                value_history[type][(r, c, dmg)] = best_q
 
     print(f"[policy.py] Policy covers {len(policy)} states")
-    return policy
+    return policy['total']

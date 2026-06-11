@@ -128,6 +128,9 @@ class MDP_class:
     
     def get_env_params(self):
         return self.api.get_env_params()
+    
+    def _is_obstacle(self, r, c):
+        return self.api._is_obstacle(r, c)
 
 def compute_policy(api):
     params = api.get_env_params()

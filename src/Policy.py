@@ -11,6 +11,17 @@ class MDP_class:
                 if self.server_api._cell(r, c) == 'medkit':
                     self.medkits.append((r, c))
 
+    def get_all_states(self):
+        # get states from server
+        base_states = self.server_api.get_all_states() # (r, c, dmg)
+        states = []
+
+        for r, c, dmg in base_states:
+            # 2^medkit_count, 0 means medkit exists
+            for mask in range(1 << len(self.medkits)):
+                states.append((r, c, dmg, mask))
+        return states
+
 def compute_policy(api):
     params = api.get_env_params()
     gamma = params['gamma']

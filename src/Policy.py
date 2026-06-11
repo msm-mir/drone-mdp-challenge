@@ -48,6 +48,17 @@ class MDP_class:
                     new_mask = mask | (1 << idx) # mark medkit as collected
             result.append(((nr, nc, ndmg, new_mask), prob))
         return result
+    
+    def get_reward(self, state, action, next_state):
+        r, c, dmg, mask = state
+        nr, nc, ndmg, nmask = next_state
+
+        reward = { 'base': 0, 'total': 0, 'goal': 0, 'medkit': 0, 'portal': 0, 
+                  'obstacle': 0, 'storm': 0, 'storm_zone': 0 }
+
+        # get base reward from server
+        reward['base'] = self.api.get_reward((r, c, dmg), action, (nr, nc, ndmg))
+        reward['total'] = reward['base']
 
 def compute_policy(api):
     params = api.get_env_params()

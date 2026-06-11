@@ -1,3 +1,5 @@
+from visualize import plot_all_visualizations
+
 class MDP_class:
     def __init__(self, api):
         self.server_api = api
@@ -197,7 +199,7 @@ def compute_policy(api):
     # compute policy
     for type in value_history.keys():
         if (not for_plotting) and (type != 'total'): continue
-        
+
         for s in states:
             r, c, dmg, mask = s
             if mask != 0:
@@ -226,4 +228,5 @@ def compute_policy(api):
                 value_history[type][(r, c, dmg)] = best_q
 
     print(f"[policy.py] Policy covers {len(policy)} states")
+    plot_all_visualizations(my_api, value_history, policy, delta_history, THETA)
     return policy['total']

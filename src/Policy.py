@@ -60,6 +60,24 @@ class MDP_class:
         reward['base'] = self.api.get_reward((r, c, dmg), action, (nr, nc, ndmg))
         reward['total'] = reward['base']
 
+        ### ==========ADJUST THE REWARD==========
+        t = self.api._cell(nr, nc)
+        tmp_reward = 0
+
+        # the next cell is a medkit
+        if (nr, nc) in self.medkits:
+            idx = self.medkits.index((nr, nc))
+            was_collected = (mask >> idx) & 1
+
+            if was_collected:
+                tmp_reward = -25
+            else:
+                tmp_reward = self.medkit_offset + dmg * self.medkit_mult
+            reward['total'] += tmp_reward
+            
+            # base reward of medkit + our reward of medkit
+            reward['medkit'] = 25 + tmp_reward - self.api.DMG_COST[dmg]
+
 def compute_policy(api):
     params = api.get_env_params()
     gamma = params['gamma']

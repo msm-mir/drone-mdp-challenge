@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 
 def plot_all_visualizations(api, value_history, policy, delta_history, THETA):
     env_params = api.get_env_params()

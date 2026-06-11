@@ -87,6 +87,16 @@ class MDP_class:
             sev = self.api._storm_sev.get(f'{nr},{nc}', 1)
             reward['storm'] = self.api.STORM_REWARD[sev] + tmp_reward - self.api.DMG_COST[dmg]
 
+        # the next cell is in storm zone
+        if self.api._in_zone(nr, nc):
+            z = self.api._storm_zone
+            if z:
+                tmp_reward = self.stormZone_offset + dmg * self.stormZone_mult
+                reward['total'] += tmp_reward
+
+                # base reward of storm zone + our reward of storm zone
+                reward['storm_zone'] = -z['eExpected'] + tmp_reward - self.api.DMG_COST[dmg]
+
 def compute_policy(api):
     params = api.get_env_params()
     gamma = params['gamma']

@@ -117,6 +117,10 @@ class MDP_class:
             reward['goal'] = tmp_reward
 
         return reward
+    
+    def is_terminal(self, state):
+        r, c, dmg, mask = state
+        return self.api.is_terminal((r, c, dmg)) or dmg == 5
 
 def compute_policy(api):
     params = api.get_env_params()

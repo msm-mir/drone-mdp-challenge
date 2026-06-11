@@ -77,6 +77,15 @@ class MDP_class:
             
             # base reward of medkit + our reward of medkit
             reward['medkit'] = 25 + tmp_reward - self.api.DMG_COST[dmg]
+        
+        # the next cell is storm
+        if t == "storm":
+            tmp_reward = self.storm_offset + dmg * self.storm_mult
+            reward['total'] += tmp_reward
+
+            # base reward of storm + our reward of storm
+            sev = self.api._storm_sev.get(f'{nr},{nc}', 1)
+            reward['storm'] = self.api.STORM_REWARD[sev] + tmp_reward - self.api.DMG_COST[dmg]
 
 def compute_policy(api):
     params = api.get_env_params()

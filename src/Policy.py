@@ -125,6 +125,9 @@ class MDP_class:
     def get_possible_actions(self, state):
         r, c, dmg, mask = state
         return self.api.get_possible_actions((r, c, dmg))
+    
+    def get_env_params(self):
+        return self.api.get_env_params()
 
 def compute_policy(api):
     params = api.get_env_params()

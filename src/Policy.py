@@ -141,41 +141,49 @@ def compute_policy(api):
     MAX_ITER = 500
 
     states = my_api.get_all_states()
-    V = {s: 0.0 for s in states}
+    value_history = { 'base': {}, 'total': {}, 'goal': {}, 'medkit': {}, 'portal': {}, 
+                      'obstacle': {}, 'storm': {}, 'storm_zone': {} }
+    
+    # initialization value_history
+    for k in value_history.keys():
+        value_history[k] = {s: 0.0 for s in states}
+    
     policy = {}
 
-    for iteration in range(MAX_ITER):
-        delta = 0.0
-        V_new = V.copy()
+    for type in value_history.keys():
+        for iteration in range(MAX_ITER):
+            delta = 0.0
+            V_new = value_history[type].copy()
 
-        for s in states:
-            if my_api.is_terminal(s):
-                V_new[s] = 0.0
-                continue
+            for s in states:
+                if my_api.is_terminal(s):
+                    V_new[s] = 0.0
+                    continue
 
-            actions = my_api.get_possible_actions(s)
-            if not actions:
-                continue
+                actions = my_api.get_possible_actions(s)
+                if not actions:
+                    continue
 
-            best_val = float('-inf')
-            for a in actions:
-                q = sum(
-                    prob * (my_api.get_reward(s, a, ns) + gamma * V.get(ns, 0.0))
-                    for ns, prob in my_api.get_transitions(s, a)
-                )
-                if q > best_val:
-                    best_val = q
+                best_val = float('-inf')
+                for a in actions:
+                    q = 0.0
+                    for ns, prob in my_api.get_transitions(s, a):
+                        reward = my_api.get_reward(s, a, ns)
 
-            delta = max(delta, abs(best_val - V[s]))
-            V_new[s] = best_val
+                        q += prob * (reward[type] + gamma * value_history[type].get(ns, 0.0))
 
-        V = V_new.copy()
-        
-        if delta < THETA:
-            print(f"[policy.py] Converged in {iteration + 1} iterations (delta={delta:.2e})")
-            break
-    else:
-        print(f"[policy.py] Reached MAX_ITER={MAX_ITER} (delta={delta:.2e})")
+                    best_val = max(best_val, q)
+
+                delta = max(delta, abs(best_val - V_new[s]))
+                V_new[s] = best_val
+
+            value_history[type] = V_new
+            
+            if delta < THETA:
+                print(f"[policy.py] Converged in {iteration + 1} iterations (delta={delta:.2e})")
+                break
+        else:
+            print(f"[policy.py] Reached MAX_ITER={MAX_ITER} (delta={delta:.2e})")
 
     for s in states:
         if my_api.is_terminal(s):

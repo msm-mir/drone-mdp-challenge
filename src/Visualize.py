@@ -8,6 +8,7 @@ def plot_all_visualizations(api, value_history, policy, delta_history, THETA):
     cols = env_params['cols']
 
     value_heatmap(api, value_history, rows, cols)
+    convergence(delta_history, THETA)
 
 def value_heatmap(api, value_history, rows, cols):
     for type, V in value_history.items():
@@ -59,5 +60,22 @@ def value_heatmap(api, value_history, rows, cols):
         output_path = os.path.join('visualize', f'value_heatmap_{type}.png')
         plt.tight_layout(h_pad=1.5)
         plt.subplots_adjust(top=0.95)
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        plt.close()
+
+def convergence(delta_history, THETA):
+    for type, delta in delta_history.items():
+        plt.figure(figsize=(8, 5))
+        plt.plot(range(1, len(delta) + 1), delta, color='dodgerblue', 
+                linewidth=2, label='max |V_new - V_old|')
+        plt.axhline(y=THETA, color='crimson', linestyle='--', linewidth=1.5, label=f'Theta ({THETA})')
+        
+        plt.title(f'{type.capitalize()} Value Iteration Convergence Curve', fontsize=14, fontweight='bold')
+        plt.xlabel('Iteration Number', fontsize=11)
+        plt.ylabel('Max Delta V (Log Scale)', fontsize=11)
+        plt.grid(True, which="both", ls="-", alpha=0.3)
+        plt.legend(fontsize=11)
+        
+        output_path = os.path.join('visualize', f'convergence_{type}.png')
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
         plt.close()

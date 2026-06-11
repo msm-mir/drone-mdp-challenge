@@ -104,6 +104,12 @@ class MDP_class:
 
             # base reward of wall + our reward of wall
             reward['obstacle'] = -self.api.WALL_PENALTY + tmp_reward - self.api.DMG_COST[dmg]
+        
+        # the next cell is portal
+        if t in ('portal_a', 'portal_b'):
+            tmp_reward = 0
+            # base reward of portal + our reward of portal
+            reward['portal'] = -5 + tmp_reward - self.api.DMG_COST[dmg]
 
 def compute_policy(api):
     params = api.get_env_params()

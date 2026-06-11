@@ -5,6 +5,18 @@ class MDP_class:
         self.medkits = []
         self.init_medkits()
 
+        self.medkit_offset = -15 # -15
+        self.medkit_mult = 20 # 10
+
+        self.storm_offset = -50 # -50
+        self.storm_mult = -30 # -30
+
+        self.stormZone_offset = -20 # -20
+        self.stormZone_mult = 0 # 0
+
+        self.wall_offset = -10 # -10
+        self.wall_mult = 0 # 0
+
     def init_medkits(self):
         for r in range(self.server_api._rows):
             for c in range(self.server_api._cols):
@@ -26,7 +38,7 @@ class MDP_class:
         r, c, dmg, mask = state
         base = self.server_api.get_transitions((r, c, dmg), action)
         result = []
-        
+
         for (nr, nc, ndmg), prob in base:
             new_mask = mask
             # If this move lands on a medkit

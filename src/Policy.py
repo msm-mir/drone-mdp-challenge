@@ -21,6 +21,21 @@ class MDP_class:
             for mask in range(1 << len(self.medkits)):
                 states.append((r, c, dmg, mask))
         return states
+    
+    def get_transitions(self, state, action):
+        r, c, dmg, mask = state
+        base = self.server_api.get_transitions((r, c, dmg), action)
+        result = []
+        
+        for (nr, nc, ndmg), prob in base:
+            new_mask = mask
+            # If this move lands on a medkit
+            if (nr, nc) in self.medkits:
+                idx = self.medkits.index((nr, nc))
+                if not (mask >> idx) & 1:
+                    new_mask = mask | (1 << idx) # mark medkit as collected
+            result.append(((nr, nc, ndmg, new_mask), prob))
+        return result
 
 def compute_policy(api):
     params = api.get_env_params()

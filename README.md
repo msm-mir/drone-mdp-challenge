@@ -95,6 +95,7 @@ Visualize the final policy using directional arrows.
 
 ## Project Structure
 
+```
 ├── app/
 │   └── drone_mdp_v2.html
 ├── src/
@@ -107,6 +108,7 @@ Visualize the final policy using directional arrows.
 │   └── policy_map.png
 ├── .gitignore
 └── README.md
+```
 
 ---
 

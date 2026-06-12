@@ -93,6 +93,23 @@ Visualize the final policy using directional arrows.
 
 ---
 
+## Project Structure
+
+├── app/
+│   └── drone_mdp_v2.html
+├── src/
+│   └── Policy.py
+│   └── Server.py
+│   └── Visualize.py
+├── visualizations/
+│   └── value_heatmap.png
+│   └── convergence.png
+│   └── policy_map.png
+├── .gitignore
+└── README.md
+
+---
+
 ## Course Information
 
 **Course:** Fundamentals and Applications of Artificial Intelligence  

@@ -99,12 +99,12 @@ Visualize the final policy using directional arrows.
 ├── app/
 │   └── drone_mdp_v2.html
 ├── src/
-│   └── Policy.py
-│   └── Server.py
+│   ├── Policy.py
+│   ├── Server.py
 │   └── Visualize.py
 ├── visualizations/
-│   └── value_heatmap.png
-│   └── convergence.png
+│   ├── value_heatmap.png
+│   ├── convergence.png
 │   └── policy_map.png
 ├── .gitignore
 └── README.md

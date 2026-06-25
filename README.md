@@ -103,9 +103,9 @@ Visualize the final policy using directional arrows.
 │   ├── Server.py
 │   └── Visualize.py
 ├── visualizations/
-│   ├── value_heatmap.png
-│   ├── convergence.png
-│   └── policy_map.png
+│   ├── convergence_total.png
+│   ├── value_heatmap_total.png
+│   └── policy_map_total.png
 ├── .gitignore
 └── README.md
 ```

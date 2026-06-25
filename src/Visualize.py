@@ -62,7 +62,7 @@ def value_heatmap(api, value_history, rows, cols, for_plotting):
             
             plt.colorbar(im, ax=ax, shrink=0.6)
         
-        output_path = os.path.join('visualize', f'value_heatmap_{type}.png')
+        output_path = os.path.join('visualizations', f'value_heatmap_{type}.png')
         plt.tight_layout(h_pad=1.5)
         plt.subplots_adjust(top=0.95)
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
@@ -83,7 +83,7 @@ def convergence(delta_history, THETA, for_plotting):
         plt.grid(True, which="both", ls="-", alpha=0.3)
         plt.legend(fontsize=11)
         
-        output_path = os.path.join('visualize', f'convergence_{type}.png')
+        output_path = os.path.join('visualizations', f'convergence_{type}.png')
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
         plt.close()
 
@@ -144,7 +144,7 @@ def policy_map(api, policy, rows, cols, for_plotting):
                         ax.text(c, r, action_makers[act], ha='center', va='center', 
                                 color='royalblue', fontsize=18, fontweight='bold')
         
-        output_path = os.path.join('visualize', f'policy_map_{type}.png')
+        output_path = os.path.join('visualizations', f'policy_map_{type}.png')
         plt.tight_layout(h_pad=2.0)
         plt.subplots_adjust(top=0.95)
         plt.savefig(output_path, dpi=300, bbox_inches='tight')

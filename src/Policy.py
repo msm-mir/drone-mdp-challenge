@@ -7,17 +7,17 @@ class MDP_class:
         self.medkits = []
         self.init_medkits()
 
-        self.medkit_offset = -15 # -15
-        self.medkit_mult = 20 # 10
+        self.medkit_offset = -15
+        self.medkit_mult = 10
 
-        self.storm_offset = -50 # -50
-        self.storm_mult = -30 # -30
+        self.storm_offset = -50
+        self.storm_mult = -30
 
-        self.stormZone_offset = -20 # -20
-        self.stormZone_mult = 0 # 0
+        self.stormZone_offset = -20
+        self.stormZone_mult = 0
 
-        self.wall_offset = -10 # -10
-        self.wall_mult = 0 # 0
+        self.wall_offset = -10
+        self.wall_mult = 0
 
     def init_medkits(self):
         for r in range(self.server_api._rows):
@@ -59,11 +59,11 @@ class MDP_class:
                   'obstacle': 0, 'storm': 0, 'storm_zone': 0 }
 
         # get base reward from server
-        reward['base'] = self.api.get_reward((r, c, dmg), action, (nr, nc, ndmg))
+        reward['base'] = self.server_api.get_reward((r, c, dmg), action, (nr, nc, ndmg))
         reward['total'] = reward['base']
 
         ### ==========ADJUST THE REWARD==========
-        t = self.api._cell(nr, nc)
+        t = self.server_api._cell(nr, nc)
         tmp_reward = 0
 
         # the next cell is a medkit
@@ -78,7 +78,7 @@ class MDP_class:
             reward['total'] += tmp_reward
             
             # base reward of medkit + our reward of medkit
-            reward['medkit'] = 25 + tmp_reward - self.api.DMG_COST[dmg]
+            reward['medkit'] = 25 + tmp_reward - self.server_api.DMG_COST[dmg]
         
         # the next cell is storm
         if t == "storm":
@@ -86,18 +86,18 @@ class MDP_class:
             reward['total'] += tmp_reward
 
             # base reward of storm + our reward of storm
-            sev = self.api._storm_sev.get(f'{nr},{nc}', 1)
-            reward['storm'] = self.api.STORM_REWARD[sev] + tmp_reward - self.api.DMG_COST[dmg]
+            sev = self.server_api._storm_sev.get(f'{nr},{nc}', 1)
+            reward['storm'] = self.server_api.STORM_REWARD[sev] + tmp_reward - self.server_api.DMG_COST[dmg]
 
         # the next cell is in storm zone
-        if self.api._in_zone(nr, nc):
-            z = self.api._storm_zone
+        if self.server_api._in_zone(nr, nc):
+            z = self.server_api._storm_zone
             if z:
                 tmp_reward = self.stormZone_offset + dmg * self.stormZone_mult
                 reward['total'] += tmp_reward
 
                 # base reward of storm zone + our reward of storm zone
-                reward['storm_zone'] = -z['eExpected'] + tmp_reward - self.api.DMG_COST[dmg]
+                reward['storm_zone'] = -z['eExpected'] + tmp_reward - self.server_api.DMG_COST[dmg]
         
         # the next cell is wall
         if r == nr and c == nc:
@@ -105,13 +105,13 @@ class MDP_class:
             reward['total'] += tmp_reward
 
             # base reward of wall + our reward of wall
-            reward['obstacle'] = -self.api.WALL_PENALTY + tmp_reward - self.api.DMG_COST[dmg]
+            reward['obstacle'] = -self.server_api.WALL_PENALTY + tmp_reward - self.server_api.DMG_COST[dmg]
         
         # the next cell is portal
         if t in ('portal_a', 'portal_b'):
             tmp_reward = 0
             # base reward of portal + our reward of portal
-            reward['portal'] = -5 + tmp_reward - self.api.DMG_COST[dmg]
+            reward['portal'] = -5 + tmp_reward - self.server_api.DMG_COST[dmg]
         
         if t == 'goal':
             tmp_reward = 300
@@ -122,17 +122,17 @@ class MDP_class:
     
     def is_terminal(self, state):
         r, c, dmg, mask = state
-        return self.api.is_terminal((r, c, dmg)) or dmg == 5
+        return self.server_api.is_terminal((r, c, dmg)) or dmg == 5
     
     def get_possible_actions(self, state):
         r, c, dmg, mask = state
-        return self.api.get_possible_actions((r, c, dmg))
+        return self.server_api.get_possible_actions((r, c, dmg))
     
     def get_env_params(self):
-        return self.api.get_env_params()
+        return self.server_api.get_env_params()
     
     def _is_obstacle(self, r, c):
-        return self.api._is_obstacle(r, c)
+        return self.server_api._is_obstacle(r, c)
 
 def compute_policy(api):
     my_api = MDP_class(api)

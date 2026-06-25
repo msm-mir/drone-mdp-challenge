@@ -4,17 +4,19 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
 
-def plot_all_visualizations(api, value_history, policy, delta_history, THETA):
+def plot_all_visualizations(api, value_history, policy, delta_history, THETA, for_plotting):
     env_params = api.get_env_params()
     rows = env_params['rows']
     cols = env_params['cols']
 
-    value_heatmap(api, value_history, rows, cols)
-    convergence(delta_history, THETA)
-    policy_map(api, policy, rows, cols)
+    value_heatmap(api, value_history, rows, cols, for_plotting)
+    convergence(delta_history, THETA, for_plotting)
+    policy_map(api, policy, rows, cols, for_plotting)
 
-def value_heatmap(api, value_history, rows, cols):
+def value_heatmap(api, value_history, rows, cols, for_plotting):
     for type, V in value_history.items():
+        if (not for_plotting) and (type != 'total'): continue
+
         fig1, axes1 = plt.subplots(5, 1, figsize=(8, 22))
         fig1.suptitle(f'{type.capitalize()} Value Heatmap for each Damage Level', fontsize=16, fontweight='bold')
         
@@ -66,8 +68,10 @@ def value_heatmap(api, value_history, rows, cols):
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
         plt.close()
 
-def convergence(delta_history, THETA):
+def convergence(delta_history, THETA, for_plotting):
     for type, delta in delta_history.items():
+        if (not for_plotting) and (type != 'total'): continue
+
         plt.figure(figsize=(8, 5))
         plt.plot(range(1, len(delta) + 1), delta, color='dodgerblue', 
                 linewidth=2, label='max |V_new - V_old|')
@@ -83,8 +87,10 @@ def convergence(delta_history, THETA):
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
         plt.close()
 
-def policy_map(api, policy, rows, cols):
+def policy_map(api, policy, rows, cols, for_plotting):
     for type, p in policy.items():
+        if (not for_plotting) and (type != 'total'): continue
+
         fig3, axes3 = plt.subplots(5, 1, figsize=(10, 22))
         fig3.suptitle(f'{type.capitalize()} Optimal Policy Map for each Damage Level', 
                       fontsize=14, fontweight='bold')
